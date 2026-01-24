@@ -1,0 +1,29 @@
+{
+  "AlarmName": "testapi-SEV1-cpu-high-2026-01-21-08-25",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed: 1 datapoint [95.0 (21/01/26 08:25:00)] was greater than or equal to the threshold (80.0).",
+  "StateChangeTime": "2026-01-21T08:25:00.000Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:998461587244:alarm:testapi-SEV1-cpu-high-2026-01-21-08-25",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "CPUUtilization",
+    "Namespace": "AWS/EC2",
+    "StatisticType": "Statistic",
+    "Statistic": "AVERAGE",
+    "Unit": null,
+    "Dimensions": [
+      {
+        "name": "InstanceId",
+        "value": "i-testapi123"
+      }
+    ],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Threshold": 80.0,
+    "TreatMissingData": "notBreaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "AWSAccountId": "998461587244"
+}

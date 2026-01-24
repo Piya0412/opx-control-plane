@@ -1,0 +1,24 @@
+correlationRule:
+  id: service-cascade
+  version: "1.0.0"
+  description: "Correlate detections from same service within time window"
+  
+  matcher:
+    sameService: true
+    windowMinutes: 60
+    windowTruncation: hour
+    minDetections: 1
+    maxDetections: 100
+  
+  keyFields:
+    - service
+    - windowTruncated
+  
+  primarySelection: HIGHEST_SEVERITY_THEN_EARLIEST_THEN_LEXICAL
+  
+  confidenceBoost:
+    multipleDetections: 0.2
+    highSeverityRule: 0.3
+    highConfidenceDetections: 0.2
+  
+  owner: platform-team

@@ -1,0 +1,25 @@
+correlationRule:
+  id: high-severity-alert
+  version: "1.0.0"
+  description: "Immediate candidate for SEV1/SEV2 detections"
+  
+  matcher:
+    severities:
+      - SEV1
+      - SEV2
+    windowMinutes: 15
+    windowTruncation: minute
+    minDetections: 1
+    maxDetections: 20
+  
+  keyFields:
+    - service
+    - windowTruncated
+  
+  primarySelection: HIGHEST_SEVERITY_THEN_EARLIEST_THEN_LEXICAL
+  
+  confidenceBoost:
+    highSeverityRule: 0.4
+    highConfidenceDetections: 0.2
+  
+  owner: platform-team

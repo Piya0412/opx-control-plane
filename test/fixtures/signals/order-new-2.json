@@ -1,0 +1,24 @@
+{
+  "AlarmName": "ordersvc-SEV1-high-latency",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed",
+  "StateChangeTime": "2026-01-21T09:36:00.000Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:998461587244:alarm:ordersvc-SEV1-high-latency",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "OrderProcessingLatency",
+    "Namespace": "CustomApp/Orders",
+    "StatisticType": "Statistic",
+    "Statistic": "AVERAGE",
+    "Unit": null,
+    "Dimensions": [{"name": "ServiceName", "value": "order-processor"}],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Threshold": 2000.0,
+    "TreatMissingData": "notBreaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "AWSAccountId": "998461587244"
+}

@@ -1,0 +1,63 @@
+{
+  "name": "opx-control-plane",
+  "version": "0.1.0",
+  "description": "Enterprise Operational Control Plane - Deterministic incident management with policy enforcement",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "cdk": "cdk",
+    "lint": "eslint . --ext .ts",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "bootstrap": "cdk bootstrap",
+    "diff": "cdk diff",
+    "destroy": "cdk destroy"
+  },
+  "keywords": [
+    "control-plane",
+    "incident-management",
+    "sre",
+    "operations"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^20.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "aws-cdk": "^2.170.0",
+    "aws-sdk-client-mock": "^4.1.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.6.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {
+    "@aws-crypto/sha256-js": "^5.2.0",
+    "@aws-sdk/client-cloudwatch": "^3.975.0",
+    "@aws-sdk/client-dynamodb": "^3.700.0",
+    "@aws-sdk/client-eventbridge": "^3.700.0",
+    "@aws-sdk/client-lambda": "^3.975.0",
+    "@aws-sdk/client-sns": "^3.975.0",
+    "@aws-sdk/client-sts": "^3.700.0",
+    "@aws-sdk/credential-provider-node": "^3.968.0",
+    "@aws-sdk/credential-providers": "^3.700.0",
+    "@aws-sdk/lib-dynamodb": "^3.969.0",
+    "@aws-sdk/protocol-http": "^3.374.0",
+    "@aws-sdk/signature-v4": "^3.374.0",
+    "@aws-sdk/util-dynamodb": "^3.700.0",
+    "aws-cdk-lib": "^2.170.0",
+    "constructs": "^10.4.0",
+    "yaml": "^2.8.2",
+    "zod": "^3.23.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

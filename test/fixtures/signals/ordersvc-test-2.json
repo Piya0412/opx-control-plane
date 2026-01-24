@@ -1,0 +1,24 @@
+{
+  "AlarmName": "ordersvc-SEV1-database-timeout-v2",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Database timeout threshold exceeded",
+  "StateChangeTime": "2026-01-21T12:46:00.000Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:998461587244:alarm:ordersvc-SEV1-database-timeout-v2",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "DatabaseTimeoutRate",
+    "Namespace": "CustomApp/OrderService",
+    "StatisticType": "Statistic",
+    "Statistic": "AVERAGE",
+    "Unit": null,
+    "Dimensions": [{"name": "ServiceName", "value": "ordersvc"}],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Threshold": 15.0,
+    "TreatMissingData": "notBreaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "AWSAccountId": "998461587244"
+}

@@ -1,0 +1,29 @@
+{
+  "AlarmName": "testapi-SEV1-memory-high-2026-01-21-08-26",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed: 1 datapoint [92.0 (21/01/26 08:26:00)] was greater than or equal to the threshold (85.0).",
+  "StateChangeTime": "2026-01-21T08:26:00.000Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:998461587244:alarm:testapi-SEV1-memory-high-2026-01-21-08-26",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "MemoryUtilization",
+    "Namespace": "CWAgent",
+    "StatisticType": "Statistic",
+    "Statistic": "AVERAGE",
+    "Unit": null,
+    "Dimensions": [
+      {
+        "name": "InstanceId",
+        "value": "i-testapi123"
+      }
+    ],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Threshold": 85.0,
+    "TreatMissingData": "notBreaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "AWSAccountId": "998461587244"
+}

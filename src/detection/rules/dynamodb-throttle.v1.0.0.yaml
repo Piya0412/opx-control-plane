@@ -1,0 +1,25 @@
+ruleId: dynamodb-throttle
+ruleVersion: "1.0.0"
+name: DynamoDB Throttle Detection
+description: Detects signals from DynamoDB throttle alarms
+owner: platform-team
+createdAt: "2026-01-16T00:00:00.000Z"
+
+signalMatcher:
+  signalTypes:
+    - alarm-opx-dynamodb-throttle
+  sources:
+    - cloudwatch-alarm
+
+conditions:
+  - conditionId: severity-check
+    field: severity
+    operator: in
+    value:
+      - CRITICAL
+      - HIGH
+
+outputSeverity: HIGH
+outputConfidence: DEFINITIVE
+
+thresholdJustifications: []

@@ -1,0 +1,23 @@
+ruleId: high-severity-signal
+ruleVersion: "1.0.0"
+name: High Severity Signal Detection
+description: Generic detection for any high severity signal with high confidence
+owner: platform-team
+createdAt: "2026-01-16T00:00:00.000Z"
+
+signalMatcher:
+  severities:
+    - CRITICAL
+    - HIGH
+  confidences:
+    - DEFINITIVE
+    - HIGH
+
+# Empty conditions = unconditional match for signals that pass matcher
+# Signals must be HIGH/CRITICAL severity AND DEFINITIVE/HIGH confidence
+conditions: []
+
+outputSeverity: HIGH
+outputConfidence: HIGH
+
+thresholdJustifications: []

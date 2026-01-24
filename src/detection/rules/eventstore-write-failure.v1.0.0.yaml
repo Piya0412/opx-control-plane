@@ -1,0 +1,21 @@
+ruleId: eventstore-write-failure
+ruleVersion: "1.0.0"
+name: Event Store Write Failure Detection
+description: Detects signals from event store write failure alarms (CRITICAL)
+owner: platform-team
+createdAt: "2026-01-16T00:00:00.000Z"
+
+signalMatcher:
+  signalTypes:
+    - alarm-opx-eventstore-write-failure
+  sources:
+    - cloudwatch-alarm
+
+# Empty conditions = unconditional match for signals that pass matcher
+# This is explicit and intentional - all event store failures are critical
+conditions: []
+
+outputSeverity: CRITICAL
+outputConfidence: DEFINITIVE
+
+thresholdJustifications: []

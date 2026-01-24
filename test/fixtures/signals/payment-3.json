@@ -1,0 +1,29 @@
+{
+  "AlarmName": "paymentservice-SEV1-queue-depth",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed: 1 datapoint [500.0 (21/01/26 09:17:00)] was greater than or equal to the threshold (100.0).",
+  "StateChangeTime": "2026-01-21T09:17:00.000Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:998461587244:alarm:paymentservice-SEV1-queue-depth",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "QueueDepth",
+    "Namespace": "CustomApp/Payments",
+    "StatisticType": "Statistic",
+    "Statistic": "AVERAGE",
+    "Unit": null,
+    "Dimensions": [
+      {
+        "name": "ServiceName",
+        "value": "payment-processor"
+      }
+    ],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Threshold": 100.0,
+    "TreatMissingData": "notBreaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "AWSAccountId": "998461587244"
+}

@@ -1,0 +1,25 @@
+correlationRule:
+  id: infrastructure-wide
+  version: "1.0.0"
+  description: "Correlate cross-service infrastructure signals"
+  
+  matcher:
+    signalTypes:
+      - infrastructure
+      - INFRASTRUCTURE
+    windowMinutes: 15
+    windowTruncation: minute
+    minDetections: 1
+    maxDetections: 100
+  
+  keyFields:
+    - signalType
+    - windowTruncated
+  
+  primarySelection: HIGHEST_SEVERITY_THEN_EARLIEST_THEN_LEXICAL
+  
+  confidenceBoost:
+    multipleDetections: 0.3
+    highSeverityRule: 0.3
+  
+  owner: platform-team

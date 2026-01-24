@@ -1,0 +1,24 @@
+{
+  "AlarmName": "testapi-SEV1-final-test-3",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed",
+  "StateChangeTime": "2026-01-21T08:52:00.000Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:998461587244:alarm:testapi-SEV1-final-test-3",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "5XXErrors",
+    "Namespace": "AWS/ApplicationELB",
+    "StatisticType": "Statistic",
+    "Statistic": "SUM",
+    "Unit": null,
+    "Dimensions": [{"name": "LoadBalancer", "value": "app/testapi/1234567890"}],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Threshold": 100.0,
+    "TreatMissingData": "notBreaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "AWSAccountId": "998461587244"
+}

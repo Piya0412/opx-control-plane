@@ -1,0 +1,21 @@
+ruleId: replay-integrity-failure
+ruleVersion: "1.0.0"
+name: Replay Integrity Failure Detection
+description: Detects signals from replay integrity failure alarms (CRITICAL - data corruption risk)
+owner: platform-team
+createdAt: "2026-01-16T00:00:00.000Z"
+
+signalMatcher:
+  signalTypes:
+    - alarm-opx-replay-integrity-failure
+  sources:
+    - cloudwatch-alarm
+
+# Empty conditions = unconditional match for signals that pass matcher
+# This is explicit and intentional - all replay integrity failures are critical
+conditions: []
+
+outputSeverity: CRITICAL
+outputConfidence: DEFINITIVE
+
+thresholdJustifications: []

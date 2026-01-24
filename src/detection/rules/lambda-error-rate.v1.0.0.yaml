@@ -1,0 +1,25 @@
+ruleId: lambda-error-rate
+ruleVersion: "1.0.0"
+name: Lambda Error Rate Detection
+description: Detects signals from Lambda error rate alarms
+owner: platform-team
+createdAt: "2026-01-16T00:00:00.000Z"
+
+signalMatcher:
+  signalTypes:
+    - alarm-opx-lambda-error-rate
+  sources:
+    - cloudwatch-alarm
+
+conditions:
+  - conditionId: severity-check
+    field: severity
+    operator: in
+    value:
+      - CRITICAL
+      - HIGH
+
+outputSeverity: HIGH
+outputConfidence: DEFINITIVE
+
+thresholdJustifications: []

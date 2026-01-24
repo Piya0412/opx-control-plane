@@ -1,0 +1,43 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ConfidenceCalculator > Zero Randomness > should be snapshot-safe (no randomness) 1`] = `0.6225`;
+
+exports[`ConfidenceCalculator > Zero Randomness > should be snapshot-safe (no randomness) 2`] = `"HIGH"`;
+
+exports[`ConfidenceCalculator > Zero Randomness > should be snapshot-safe (no randomness) 3`] = `
+[
+  "2 detections observed",
+  "1 CRITICAL severity detection",
+  "2 distinct detection rules",
+]
+`;
+
+exports[`ConfidenceCalculator > Zero Randomness > should be snapshot-safe (no randomness) 4`] = `
+{
+  "detectionCount": {
+    "contribution": 0.15,
+    "value": 0.5,
+    "weight": 0.3,
+  },
+  "ruleDiversity": {
+    "contribution": 0.12,
+    "value": 0.6,
+    "weight": 0.2,
+  },
+  "severityScore": {
+    "contribution": 0.2125,
+    "value": 0.85,
+    "weight": 0.25,
+  },
+  "signalVolume": {
+    "contribution": 0.05,
+    "value": 0.5,
+    "weight": 0.1,
+  },
+  "temporalDensity": {
+    "contribution": 0.09,
+    "value": 0.6,
+    "weight": 0.15,
+  },
+}
+`;

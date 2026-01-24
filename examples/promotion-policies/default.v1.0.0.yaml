@@ -1,0 +1,25 @@
+id: default
+version: 1.0.0
+description: Default promotion policy for standard operations
+
+eligibility:
+  minConfidence: MEDIUM
+  allowedSeverities: [SEV1, SEV2, SEV3, SEV4]
+  minDetections: 1
+  maxAgeMinutes: 60
+  requiredBlastRadiusScope: [SINGLE_SERVICE, MULTI_SERVICE]
+
+authorityRestrictions:
+  allowedAuthorities: [AUTO_ENGINE, HUMAN_OPERATOR, ON_CALL_SRE, EMERGENCY_OVERRIDE]
+  severityOverrides:
+    SEV1: [ON_CALL_SRE, EMERGENCY_OVERRIDE]
+    SEV2: [HUMAN_OPERATOR, ON_CALL_SRE, EMERGENCY_OVERRIDE]
+
+deferralConditions:
+  pendingIncidentForService: true
+  cooldownMinutes: 5
+
+rejectionConditions:
+  duplicateCandidate: true
+  staleCandidate: true
+  insufficientEvidence: true

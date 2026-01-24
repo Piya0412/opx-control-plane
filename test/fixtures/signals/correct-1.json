@@ -1,0 +1,29 @@
+{
+  "AlarmName": "testapiV2-SEV1-high-error-rate",
+  "NewStateValue": "ALARM",
+  "NewStateReason": "Threshold Crossed: 1 datapoint [100.0 (21/01/26 09:00:00)] was greater than or equal to the threshold (50.0).",
+  "StateChangeTime": "2026-01-21T09:00:00.000Z",
+  "Region": "us-east-1",
+  "AlarmArn": "arn:aws:cloudwatch:us-east-1:998461587244:alarm:testapiV2-SEV1-high-error-rate",
+  "OldStateValue": "OK",
+  "Trigger": {
+    "MetricName": "ErrorRate",
+    "Namespace": "AWS/ApplicationELB",
+    "StatisticType": "Statistic",
+    "Statistic": "AVERAGE",
+    "Unit": null,
+    "Dimensions": [
+      {
+        "name": "LoadBalancer",
+        "value": "app/testapiV2/9876543210"
+      }
+    ],
+    "Period": 300,
+    "EvaluationPeriods": 1,
+    "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+    "Threshold": 50.0,
+    "TreatMissingData": "notBreaching",
+    "EvaluateLowSampleCountPercentile": ""
+  },
+  "AWSAccountId": "998461587244"
+}

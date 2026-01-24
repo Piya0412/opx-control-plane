@@ -1,0 +1,16 @@
+{
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-123",
+        "TopicArn": "arn:aws:sns:us-east-1:998461587244:opx-cloudwatch-alarms",
+        "Subject": "ALARM",
+        "Message": "{\"AlarmName\":\"direct-test-SEV1\",\"AlarmDescription\":\"Direct test\",\"AWSAccountId\":\"998461587244\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Testing\",\"StateChangeTime\":\"2026-01-21T21:00:00.000Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:998461587244:alarm:direct-test-SEV1\",\"Trigger\":{\"MetricName\":\"CPUUtilization\",\"Namespace\":\"AWS/EC2\",\"Statistic\":\"AVERAGE\",\"Period\":300,\"EvaluationPeriods\":1,\"ComparisonOperator\":\"GreaterThanThreshold\",\"Threshold\":80}}",
+        "Timestamp": "2026-01-21T21:00:00.000Z"
+      }
+    }
+  ]
+}

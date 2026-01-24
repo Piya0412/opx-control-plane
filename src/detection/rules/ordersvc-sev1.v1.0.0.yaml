@@ -1,0 +1,22 @@
+ruleId: ordersvc-sev1
+ruleVersion: "1.0.0"
+name: Order Service SEV1 Detection
+description: Detection rule for ordersvc SEV1 signals
+owner: platform-team
+createdAt: "2026-01-21T00:00:00.000Z"
+
+signalMatcher:
+  signalTypes:
+    - ALARM_STATE_CHANGE
+  sources:
+    - CLOUDWATCH_ALARM
+  severities:
+    - CRITICAL
+
+# Match any ordersvc CRITICAL (SEV1) signal
+conditions: []
+
+outputSeverity: HIGH
+outputConfidence: HIGH
+
+thresholdJustifications: []

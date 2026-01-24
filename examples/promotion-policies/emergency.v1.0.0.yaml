@@ -1,0 +1,24 @@
+id: emergency
+version: 1.0.0
+description: Emergency promotion policy for critical situations
+
+eligibility:
+  minConfidence: LOW
+  allowedSeverities: [SEV1, SEV2]
+  minDetections: 1
+  maxAgeMinutes: 120
+
+authorityRestrictions:
+  allowedAuthorities: [ON_CALL_SRE, EMERGENCY_OVERRIDE]
+  severityOverrides:
+    SEV1: [ON_CALL_SRE, EMERGENCY_OVERRIDE]
+    SEV2: [ON_CALL_SRE, EMERGENCY_OVERRIDE]
+
+deferralConditions:
+  pendingIncidentForService: false
+  cooldownMinutes: 0
+
+rejectionConditions:
+  duplicateCandidate: true
+  staleCandidate: false
+  insufficientEvidence: false

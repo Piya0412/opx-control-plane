@@ -1,0 +1,23 @@
+correlationRule:
+  id: rule-cluster
+  version: "1.0.0"
+  description: "Correlate when same rule fires multiple times"
+  
+  matcher:
+    sameRuleId: true
+    windowMinutes: 30
+    windowTruncation: hour
+    minDetections: 2
+    maxDetections: 50
+  
+  keyFields:
+    - ruleId
+    - windowTruncated
+  
+  primarySelection: HIGHEST_SEVERITY_THEN_EARLIEST_THEN_LEXICAL
+  
+  confidenceBoost:
+    multipleDetections: 0.3
+    highSeverityRule: 0.2
+  
+  owner: platform-team
