@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   PromotionRequestSchema,
   PromotionRequestWithValidationSchema,
-  PromotionDecisionSchema,
+  PromotionDecisionFullSchema,
   PromotionAuditRecordSchema,
   computeDecisionId,
   computeDecisionHash,
@@ -119,31 +119,31 @@ describe('CP-6: Promotion Schemas', () => {
     };
 
     it('should accept valid decision', () => {
-      const result = PromotionDecisionSchema.safeParse(validDecision);
+      const result = PromotionDecisionFullSchema.safeParse(validDecision);
       expect(result.success).toBe(true);
     });
 
     it('should reject invalid decision type', () => {
       const decision = { ...validDecision, decision: 'INVALID' };
-      const result = PromotionDecisionSchema.safeParse(decision);
+      const result = PromotionDecisionFullSchema.safeParse(decision);
       expect(result.success).toBe(false);
     });
 
     it('should reject invalid decisionId length', () => {
       const decision = { ...validDecision, decisionId: 'too-short' };
-      const result = PromotionDecisionSchema.safeParse(decision);
+      const result = PromotionDecisionFullSchema.safeParse(decision);
       expect(result.success).toBe(false);
     });
 
     it('should accept optional justification', () => {
       const decision = { ...validDecision, justification: 'Emergency override' };
-      const result = PromotionDecisionSchema.safeParse(decision);
+      const result = PromotionDecisionFullSchema.safeParse(decision);
       expect(result.success).toBe(true);
     });
 
     it('should accept optional sessionId', () => {
       const decision = { ...validDecision, sessionId: 'session-123' };
-      const result = PromotionDecisionSchema.safeParse(decision);
+      const result = PromotionDecisionFullSchema.safeParse(decision);
       expect(result.success).toBe(true);
     });
   });
@@ -156,14 +156,14 @@ describe('CP-6: Promotion Schemas', () => {
       candidateId: 'a'.repeat(64),
       decision: 'PROMOTE' as const,
       reason: 'All policy conditions satisfied',
+      policyId: 'default',
+      policyVersion: '1.0.0',
+      authorityType: 'HUMAN_OPERATOR' as const,
+      authorityId: 'user:jane@example.com',
+      decidedAt: '2026-01-16T10:30:01.000Z',
       policySnapshot: '{"id":"default","version":"1.0.0"}',
       inputSnapshot: '{"candidateId":"test","severity":"SEV2"}',
-      authorityContext: {
-        authorityType: 'HUMAN_OPERATOR' as const,
-        authorityId: 'user:jane@example.com',
-        timestamp: '2026-01-16T10:30:00.000Z',
-      },
-      createdAt: '2026-01-16T10:30:02.000Z',
+      auditedAt: '2026-01-16T10:30:02.000Z',
     };
 
     it('should accept valid audit record', () => {

@@ -11,7 +11,7 @@ describe('CP-3: Rule Loader', () => {
   let loader: RuleLoader;
 
   beforeAll(() => {
-    const rulesDir = path.join(process.cwd(), 'rules');
+    const rulesDir = path.join(process.cwd(), 'src', 'detection', 'rules');
     loader = new RuleLoader(rulesDir);
     loader.loadAllRules();
   });

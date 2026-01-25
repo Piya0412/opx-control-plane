@@ -94,11 +94,13 @@ export const IncidentSchema = z.object({
   incidentId: z.string().length(64), // SHA256 hex
   decisionId: z.string().length(64),
   candidateId: z.string().length(64),
+  evidenceId: z.string().length(64), // Evidence bundle ID
   
   // Context
   severity: SeveritySchema,
   service: z.string().min(1),
   title: z.string().min(1),
+  confidenceScore: z.number().min(0).max(1),
   
   // State (CORRECTED: status not state)
   status: IncidentStatusSchema,

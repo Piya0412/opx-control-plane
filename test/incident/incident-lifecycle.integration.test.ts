@@ -29,11 +29,12 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
 
   describe('Incident Creation', () => {
     it('should create incident from promotion result', async () => {
-      // Arrange
+      // Arrange - Use unique IDs to avoid conflicts with previous test runs
+      const uniqueSuffix = Date.now().toString().padStart(16, '0');
       const promotionResult: PromotionResult = {
         decision: 'PROMOTE',
-        candidateId: 'a'.repeat(64),
-        incidentId: 'b'.repeat(64),
+        candidateId: ('a' + uniqueSuffix).padEnd(64, '0'),
+        incidentId: ('b' + uniqueSuffix).padEnd(64, '0'),
         confidenceScore: 0.8,
         confidenceBand: 'HIGH',
         evaluatedAt: '2026-01-22T10:00:00.000Z',
@@ -41,18 +42,18 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       };
 
       const evidence: EvidenceBundle = {
-        evidenceId: 'c'.repeat(64),
+        evidenceId: ('c' + uniqueSuffix).padEnd(64, '0'),
         service: 'order-service',
         detections: [
           {
-            detectionId: 'd'.repeat(64),
+            detectionId: ('d' + uniqueSuffix).padEnd(64, '0'),
             ruleId: 'high-error-rate',
             severity: 'CRITICAL',
             signalIds: ['signal1', 'signal2'],
             detectedAt: '2026-01-22T09:55:00.000Z',
           },
           {
-            detectionId: 'e'.repeat(64),
+            detectionId: ('e' + uniqueSuffix).padEnd(64, '0'),
             ruleId: 'high-latency',
             severity: 'HIGH',
             signalIds: ['signal3'],
@@ -86,17 +87,17 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       // Assert
       expect(incident).toBeDefined();
       expect(incident.incidentId).toBe(promotionResult.incidentId);
-      expect(incident.status).toBe('OPEN');
+      expect(incident.status).toBe('PENDING');
       expect(incident.service).toBe('order-service');
-      expect(incident.severity).toBe('CRITICAL'); // Max severity from detections
+      expect(incident.severity).toBe('SEV1'); // CRITICAL maps to SEV1
       expect(incident.evidenceId).toBe(evidence.evidenceId);
       expect(incident.candidateId).toBe(promotionResult.candidateId);
       expect(incident.confidenceScore).toBe(0.8);
-      expect(incident.openedAt).toBe(promotionResult.evaluatedAt); // DERIVED
+      expect(incident.openedAt).toBeUndefined(); // Not set until OPEN
       expect(incident.lastModifiedAt).toBe(promotionResult.evaluatedAt); // DERIVED
       expect(incident.createdBy).toEqual(authority);
       expect(incident.lastModifiedBy).toEqual(authority);
-      expect(incident.title).toContain('CRITICAL');
+      expect(incident.title).toContain('SEV1'); // Title uses mapped severity
       expect(incident.title).toContain('order-service');
     });
 
@@ -162,11 +163,12 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
     });
 
     it('should derive severity from evidence (max severity)', async () => {
-      // Arrange
+      // Arrange - Use unique IDs to avoid conflicts with previous test runs
+      const uniqueSuffix = Date.now().toString().padStart(16, '0');
       const promotionResult: PromotionResult = {
         decision: 'PROMOTE',
-        candidateId: 'a'.repeat(64),
-        incidentId: 'c'.repeat(64), // Exactly 64 chars
+        candidateId: ('a' + uniqueSuffix).padEnd(64, '0'),
+        incidentId: ('c' + uniqueSuffix).padEnd(64, '0'), // Different from first test
         confidenceScore: 0.7,
         confidenceBand: 'HIGH',
         evaluatedAt: '2026-01-22T10:00:00.000Z',
@@ -174,25 +176,25 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       };
 
       const evidence: EvidenceBundle = {
-        evidenceId: 'c'.repeat(64),
+        evidenceId: ('c' + uniqueSuffix).padEnd(64, '0'),
         service: 'test-service',
         detections: [
           {
-            detectionId: 'd'.repeat(64),
+            detectionId: ('d' + uniqueSuffix).padEnd(64, '0'),
             ruleId: 'rule1',
             severity: 'LOW',
             signalIds: ['signal1'],
             detectedAt: '2026-01-22T09:55:00.000Z',
           },
           {
-            detectionId: 'e'.repeat(64),
+            detectionId: ('e' + uniqueSuffix).padEnd(64, '0'),
             ruleId: 'rule2',
             severity: 'CRITICAL',
             signalIds: ['signal2'],
             detectedAt: '2026-01-22T09:56:00.000Z',
           },
           {
-            detectionId: 'f'.repeat(64),
+            detectionId: ('f' + uniqueSuffix).padEnd(64, '0'),
             ruleId: 'rule3',
             severity: 'MEDIUM',
             signalIds: ['signal3'],
@@ -224,7 +226,7 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       );
 
       // Assert - Should use CRITICAL (max severity)
-      expect(incident.severity).toBe('CRITICAL');
+      expect(incident.severity).toBe('SEV1'); // CRITICAL maps to SEV1
     });
   });
 
@@ -287,12 +289,11 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
         principal: 'arn:aws:iam::123456789012:user/operator',
       };
 
-      // Create incident in PENDING state
-      const pendingIncident = { ...testIncident, status: 'PENDING' as IncidentStatus };
+      // testIncident is already in PENDING state
 
       // Act
       const updated = await incidentManager.transitionIncident(
-        pendingIncident.incidentId,
+        testIncident.incidentId,
         'OPEN',
         authority
       );
@@ -310,6 +311,13 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
         type: 'HUMAN_OPERATOR',
         principal: 'arn:aws:iam::123456789012:user/operator',
       };
+
+      // First transition to OPEN
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
+        'OPEN',
+        authority
+      );
 
       // Act
       const updated = await incidentManager.transitionIncident(
@@ -335,6 +343,13 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
         notes: 'Simple configuration change',
       };
 
+      // First transition to OPEN
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
+        'OPEN',
+        { type: 'HUMAN_OPERATOR', principal: 'arn:aws:iam::123456789012:user/operator' }
+      );
+
       // Act - Direct transition from OPEN to RESOLVED
       const updated = await incidentManager.transitionIncident(
         testIncident.incidentId,
@@ -356,7 +371,13 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
         principal: 'arn:aws:iam::123456789012:user/sre',
       };
 
-      // First transition to MITIGATING
+      // First transition to OPEN, then MITIGATING
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
+        'OPEN',
+        { type: 'HUMAN_OPERATOR', principal: 'arn:aws:iam::123456789012:user/operator' }
+      );
+
       await incidentManager.transitionIncident(
         testIncident.incidentId,
         'MITIGATING',
@@ -392,6 +413,12 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       // Transition through states to RESOLVED
       await incidentManager.transitionIncident(
         testIncident.incidentId,
+        'OPEN',
+        authority
+      );
+
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
         'MITIGATING',
         authority
       );
@@ -422,6 +449,13 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
         principal: 'arn:aws:iam::123456789012:user/sre',
       };
 
+      // First transition to OPEN
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
+        'OPEN',
+        { type: 'HUMAN_OPERATOR', principal: 'arn:aws:iam::123456789012:user/operator' }
+      );
+
       // Act & Assert
       await expect(
         incidentManager.transitionIncident(
@@ -440,6 +474,12 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       };
 
       // Transition to CLOSED
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
+        'OPEN',
+        authority
+      );
+
       await incidentManager.transitionIncident(
         testIncident.incidentId,
         'MITIGATING',
@@ -476,7 +516,13 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
         principal: 'arn:aws:iam::123456789012:user/operator',
       };
 
-      // Transition to MITIGATING first
+      // Transition to OPEN, then MITIGATING first
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
+        'OPEN',
+        authority
+      );
+
       await incidentManager.transitionIncident(
         testIncident.incidentId,
         'MITIGATING',
@@ -501,7 +547,13 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
         principal: 'arn:aws:iam::123456789012:user/sre',
       };
 
-      // Transition to MITIGATING first
+      // Transition to OPEN, then MITIGATING first
+      await incidentManager.transitionIncident(
+        testIncident.incidentId,
+        'OPEN',
+        { type: 'HUMAN_OPERATOR', principal: 'arn:aws:iam::123456789012:user/operator' }
+      );
+
       await incidentManager.transitionIncident(
         testIncident.incidentId,
         'MITIGATING',

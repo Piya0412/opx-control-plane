@@ -38,6 +38,8 @@ describe('Phase 3.4: Incident Manager (Canonical)', () => {
   const mockEvidence: EvidenceBundle = {
     evidenceId: 'e'.repeat(64),
     service: 'lambda',
+    windowStart: '2026-01-17T09:00:00.000Z',
+    windowEnd: '2026-01-17T10:00:00.000Z',
     detections: [
       {
         detectionId: 'd1'.padEnd(64, '0'),
@@ -60,6 +62,12 @@ describe('Phase 3.4: Incident Manager (Canonical)', () => {
         metadata: {},
       },
     ],
+    signalSummary: {
+      signalCount: 2,
+      severityDistribution: { HIGH: 1, MEDIUM: 1 },
+      timeSpread: 900000, // 15 minutes in ms
+      uniqueRules: 2,
+    },
     correlationKey: 'k'.repeat(64),
     bundledAt: '2026-01-17T10:00:00.000Z',
     bundleVersion: 'v1',
@@ -99,10 +107,10 @@ describe('Phase 3.4: Incident Manager (Canonical)', () => {
       expect(incident).toBeDefined();
       expect(incident.incidentId).toBe(mockPromotionResult.incidentId);
       expect(incident.service).toBe(mockEvidence.service);
-      expect(incident.state).toBe('OPEN');
-      expect(incident.severity).toBe('HIGH'); // Max from detections
+      expect(incident.status).toBe('PENDING');
+      expect(incident.severity).toBe('SEV2'); // HIGH maps to SEV2
       expect(incident.createdAt).toBe(mockPromotionResult.evaluatedAt);
-      expect(incident.openedAt).toBe(mockPromotionResult.evaluatedAt);
+      expect(incident.openedAt).toBeUndefined(); // Not set until OPEN
       expect(incidentStore.putIncident).toHaveBeenCalled();
     });
 
@@ -158,24 +166,26 @@ describe('Phase 3.4: Incident Manager (Canonical)', () => {
         mockAuthority
       );
 
-      // Evidence has HIGH and MEDIUM detections, should use HIGH
-      expect(incident.severity).toBe('HIGH');
+      // Evidence has HIGH and MEDIUM detections, should use HIGH → SEV2
+      expect(incident.severity).toBe('SEV2');
     });
   });
 
   describe('transitionIncident', () => {
     const mockIncident: Incident = {
       incidentId: 'i'.repeat(64),
-      service: 'lambda',
-      severity: 'HIGH',
-      state: 'OPEN',
-      evidenceId: 'e'.repeat(64),
-      candidateId: 'c'.repeat(64),
       decisionId: 'i'.repeat(64),
-      confidenceScore: 0.85,
-      createdAt: '2026-01-17T10:00:00.000Z',
-      openedAt: '2026-01-17T10:00:00.000Z',
+      candidateId: 'c'.repeat(64),
+      service: 'lambda',
+      severity: 'SEV2',
       title: 'Test Incident',
+      status: 'OPEN',
+      createdAt: '2026-01-17T10:00:00.000Z',
+      detectionCount: 2,
+      evidenceGraphCount: 1,
+      blastRadiusScope: 'SINGLE_SERVICE',
+      incidentVersion: 1,
+      openedAt: '2026-01-17T10:00:00.000Z',
       description: 'Test',
       tags: [],
       createdBy: mockAuthority,
@@ -183,7 +193,7 @@ describe('Phase 3.4: Incident Manager (Canonical)', () => {
       lastModifiedBy: mockAuthority,
     };
 
-    it('should transition incident state', async () => {
+    it('should transition incident status', async () => {
       vi.mocked(incidentStore.getIncident).mockResolvedValue(mockIncident);
       vi.mocked(incidentStore.updateIncident).mockResolvedValue(undefined);
 
@@ -194,12 +204,12 @@ describe('Phase 3.4: Incident Manager (Canonical)', () => {
 
       const updated = await manager.transitionIncident(
         mockIncident.incidentId,
-        'ACKNOWLEDGED',
+        'MITIGATING',
         humanAuthority
       );
 
-      expect(updated.state).toBe('ACKNOWLEDGED');
-      expect(updated.acknowledgedAt).toBeDefined();
+      expect(updated.status).toBe('MITIGATING');
+      expect(updated.mitigatingAt).toBeDefined();
       expect(incidentStore.updateIncident).toHaveBeenCalled();
     });
 

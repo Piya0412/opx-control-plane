@@ -40,6 +40,44 @@ export class PromotionGate {
   ) {}
   
   /**
+   * Validate promotion request structure
+   * 
+   * @param request - Promotion request to validate
+   * @returns Validation result
+   */
+  validateRequest(request: any): { allowed: boolean; reason?: string } {
+    // Basic structural validation
+    if (!request) {
+      return { allowed: false, reason: 'Request is null or undefined' };
+    }
+    
+    if (!request.candidateId || typeof request.candidateId !== 'string') {
+      return { allowed: false, reason: 'Invalid or missing candidateId' };
+    }
+    
+    if (!request.policyId || typeof request.policyId !== 'string') {
+      return { allowed: false, reason: 'Invalid or missing policyId' };
+    }
+    
+    if (!request.policyVersion || typeof request.policyVersion !== 'string') {
+      return { allowed: false, reason: 'Invalid or missing policyVersion' };
+    }
+    
+    // Validate authorityType
+    const validAuthorityTypes = ['AUTO_ENGINE', 'HUMAN_OPERATOR', 'ON_CALL_SRE', 'EMERGENCY_OVERRIDE', 'AUTOMATED_SYSTEM'];
+    if (!request.authorityType || !validAuthorityTypes.includes(request.authorityType)) {
+      return { allowed: false, reason: 'Invalid or missing authorityType' };
+    }
+    
+    if (!request.authorityId || typeof request.authorityId !== 'string') {
+      return { allowed: false, reason: 'Invalid or missing authorityId' };
+    }
+    
+    // All validations passed
+    return { allowed: true };
+  }
+  
+  /**
    * Evaluate promotion decision
    * 
    * @param candidateId - Candidate ID

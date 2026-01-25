@@ -90,7 +90,7 @@ export class IncidentManager {
       incidentId: promotionResult.incidentId,
       service: evidence.service,
       severity,
-      status: 'OPEN',
+      status: 'PENDING',
       evidenceId: evidence.evidenceId,
       candidateId,
       decisionId: promotionResult.incidentId, // Use incidentId as decisionId for now
@@ -100,7 +100,6 @@ export class IncidentManager {
       evidenceGraphCount: 1, // Single evidence bundle
       blastRadiusScope: 'SINGLE_SERVICE', // Default, can be enhanced later
       incidentVersion: 1, // DERIVED (not Date.now())
-      openedAt: promotionResult.evaluatedAt, // DERIVED (not Date.now())
       title,
       description,
       tags: [evidence.service, severity],

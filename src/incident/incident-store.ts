@@ -51,6 +51,11 @@ export class IncidentStore {
    */
   async putIncident(incident: Incident): Promise<boolean> {
     try {
+      // Remove undefined values before marshalling
+      const cleanIncident = Object.fromEntries(
+        Object.entries(incident).filter(([_, value]) => value !== undefined)
+      );
+
       await this.client.send(
         new PutItemCommand({
           TableName: this.tableName,
@@ -58,9 +63,8 @@ export class IncidentStore {
             pk: `INCIDENT#${incident.incidentId}`,
             sk: 'v1',
             state: incident.status,
-            openedAt: incident.openedAt,
             service: incident.service,
-            ...incident,
+            ...cleanIncident,
           }),
           ConditionExpression: 'attribute_not_exists(pk)',
         })
@@ -94,9 +98,12 @@ export class IncidentStore {
     }
 
     const item = unmarshall(result.Item);
-    // Remove DynamoDB keys (keep only incident fields)
-    const { pk, sk, ...incident } = item;
-    return incident as Incident;
+    // Remove DynamoDB keys and map state back to status
+    const { pk, sk, state, ...incident } = item;
+    return {
+      ...incident,
+      status: state, // Map state field back to status
+    } as Incident;
   }
 
   /**
@@ -105,6 +112,11 @@ export class IncidentStore {
    * Used for state transitions.
    */
   async updateIncident(incident: Incident): Promise<void> {
+    // Remove undefined values before marshalling
+    const cleanIncident = Object.fromEntries(
+      Object.entries(incident).filter(([_, value]) => value !== undefined)
+    );
+
     await this.client.send(
       new PutItemCommand({
         TableName: this.tableName,
@@ -112,9 +124,8 @@ export class IncidentStore {
           pk: `INCIDENT#${incident.incidentId}`,
           sk: 'v1',
           state: incident.status,
-          openedAt: incident.openedAt,
           service: incident.service,
-          ...incident,
+          ...cleanIncident,
         }),
       })
     );

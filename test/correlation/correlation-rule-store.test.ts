@@ -97,6 +97,7 @@ describe('CorrelationRuleStore', () => {
           pk: 'RULE#rule-lambda-high-error',
           sk: 'VERSION#1.0.0',
           ...mockRule,
+          enabled: 'true', // Store as string like the real implementation
         },
       });
 

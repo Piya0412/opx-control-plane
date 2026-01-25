@@ -62,21 +62,23 @@ describe('Evidence Bundle Integration', () => {
     });
     
     it('should store and retrieve evidence bundle', async () => {
+      // Use unique IDs to avoid conflicts with previous test runs
+      const uniqueSuffix = Date.now().toString();
       const detections: DetectionSummary[] = [
         {
-          detectionId: 'det-101',
-          ruleId: 'rule-store-test',
+          detectionId: `det-101-${uniqueSuffix}`,
+          ruleId: `rule-store-test-${uniqueSuffix}`,
           ruleVersion: '1.0.0',
           severity: 'CRITICAL',
           confidence: 0.95,
           detectedAt: '2026-01-21T11:00:00.000Z',
-          signalIds: ['sig-101'],
+          signalIds: [`sig-101-${uniqueSuffix}`],
         },
       ];
       
       const bundle = evidenceBuilder.buildBundle(
         detections,
-        'store-test-service',
+        `store-test-service-${uniqueSuffix}`,
         '2026-01-21T11:00:00.000Z',
         '2026-01-21T11:05:00.000Z'
       );
@@ -89,28 +91,30 @@ describe('Evidence Bundle Integration', () => {
       const retrieved = await evidenceStore.getEvidence(bundle.evidenceId);
       expect(retrieved).not.toBeNull();
       expect(retrieved!.evidenceId).toBe(bundle.evidenceId);
-      expect(retrieved!.service).toBe('store-test-service');
+      expect(retrieved!.service).toBe(`store-test-service-${uniqueSuffix}`);
       expect(retrieved!.detections).toHaveLength(1);
     });
   });
   
   describe('Idempotency', () => {
     it('should be idempotent when storing same bundle twice', async () => {
+      // Use unique IDs to avoid conflicts with previous test runs
+      const uniqueSuffix = Date.now().toString();
       const detections: DetectionSummary[] = [
         {
-          detectionId: 'det-201',
-          ruleId: 'rule-idempotent',
+          detectionId: `det-201-${uniqueSuffix}`,
+          ruleId: `rule-idempotent-${uniqueSuffix}`,
           ruleVersion: '1.0.0',
           severity: 'HIGH',
           confidence: 0.85,
           detectedAt: '2026-01-21T12:00:00.000Z',
-          signalIds: ['sig-201', 'sig-202'],
+          signalIds: [`sig-201-${uniqueSuffix}`, `sig-202-${uniqueSuffix}`],
         },
       ];
       
       const bundle = evidenceBuilder.buildBundle(
         detections,
-        'idempotent-service',
+        `idempotent-service-${uniqueSuffix}`,
         '2026-01-21T12:00:00.000Z',
         '2026-01-21T12:05:00.000Z'
       );

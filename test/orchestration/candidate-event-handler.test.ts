@@ -203,7 +203,8 @@ describe('CandidateEventHandler', () => {
         handleCandidateCreated(event, createMockContext())
       ).rejects.toThrow('Invalid CandidateCreated event');
 
-      expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+      // Verify no processing occurred
+      expect(mockPromotionGate.evaluate).not.toHaveBeenCalled();
     });
 
     it('throws on invalid candidateId format', async () => {
@@ -215,7 +216,8 @@ describe('CandidateEventHandler', () => {
         handleCandidateCreated(event, createMockContext())
       ).rejects.toThrow('Invalid CandidateCreated event');
 
-      expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+      // Verify no processing occurred
+      expect(mockPromotionGate.evaluate).not.toHaveBeenCalled();
     });
 
     it('throws on missing required field', async () => {
@@ -227,7 +229,8 @@ describe('CandidateEventHandler', () => {
         handleCandidateCreated(event, createMockContext())
       ).rejects.toThrow('Invalid CandidateCreated event');
 
-      expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+      // Verify no processing occurred
+      expect(mockPromotionGate.evaluate).not.toHaveBeenCalled();
     });
   });
 
@@ -237,25 +240,63 @@ describe('CandidateEventHandler', () => {
         candidateId: 'b'.repeat(64),
       });
 
-      vi.mocked(mockOrchestrator.processCandidate).mockResolvedValue({
-        success: true,
+      const mockCandidate = {
+        candidateId: 'b'.repeat(64),
+        evidenceGraphIds: ['e'.repeat(64)],
+        confidence: 'HIGH',
+        confidenceFactors: [],
+        createdAt: '2026-01-19T00:00:00Z',
+      };
+
+      const mockEvidence = {
+        evidenceId: 'e'.repeat(64),
+        bundledAt: '2026-01-19T00:00:00Z',
+      };
+
+      const mockPromotionResult = {
         decision: 'PROMOTE',
         incidentId: 'f'.repeat(64),
-        decisionId: 'c'.repeat(64),
-        reason: 'Policy evaluation: PROMOTE',
-      });
+        candidateId: 'b'.repeat(64),
+        evidenceId: 'e'.repeat(64),
+        confidenceScore: 0.8,
+        confidenceBand: 'HIGH',
+        evidenceWindow: {
+          start: '2026-01-19T00:00:00Z',
+          end: '2026-01-19T00:30:00Z',
+        },
+        evaluatedAt: '2026-01-19T00:00:00Z',
+        gateVersion: 'v1.0.0',
+      };
+
+      const mockIncident = {
+        incidentId: 'f'.repeat(64),
+        state: 'OPEN',
+        severity: 'SEV2',
+      };
+
+      vi.mocked(mockCandidateStore.get).mockResolvedValue(mockCandidate);
+      vi.mocked(mockEvidenceStore.getEvidence).mockResolvedValue(mockEvidence);
+      vi.mocked(mockPromotionGate.evaluate).mockResolvedValue(mockPromotionResult);
+      vi.mocked(mockIncidentManager.createIncident).mockResolvedValue(mockIncident);
+      vi.mocked(mockPromotionStore.recordDecision).mockResolvedValue(undefined);
 
       await handleCandidateCreated(event, createMockContext());
 
-      expect(mockOrchestrator.processCandidate).toHaveBeenCalledWith(
-        'b'.repeat(64),
-        {
-          authorityType: 'AUTO_ENGINE',
-          authorityId: 'opx-candidate-processor',
-          sessionId: 'b'.repeat(64),
-          justification: 'Auto-promotion from correlation',
-        },
-        expect.any(String)
+      // Verify the incident manager was called with AUTO_ENGINE authority
+      expect(mockIncidentManager.createIncident).toHaveBeenCalledWith(
+        expect.objectContaining({
+          decision: 'PROMOTE',
+          candidateId: 'b'.repeat(64),
+          incidentId: 'f'.repeat(64),
+        }), // promotionResult
+        expect.objectContaining({
+          evidenceId: 'e'.repeat(64),
+        }), // evidence
+        'b'.repeat(64), // candidateId
+        expect.objectContaining({
+          type: 'AUTO_ENGINE',
+          principal: expect.stringContaining('opx-candidate'),
+        }) // authority
       );
     });
   });
@@ -264,7 +305,7 @@ describe('CandidateEventHandler', () => {
     it('propagates orchestrator errors', async () => {
       const event = createMockEventBridgeEvent({});
 
-      vi.mocked(mockOrchestrator.processCandidate).mockRejectedValue(
+      vi.mocked(mockCandidateStore.get).mockRejectedValue(
         new Error('Candidate not found')
       );
 
@@ -282,7 +323,8 @@ describe('CandidateEventHandler', () => {
         handleCandidateCreated(event, createMockContext())
       ).rejects.toThrow('Invalid CandidateCreated event');
 
-      expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+      // Verify no processing occurred
+      expect(mockPromotionGate.evaluate).not.toHaveBeenCalled();
     });
   });
 });

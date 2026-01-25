@@ -17,9 +17,11 @@ describe('CP-7: Incident Schema Validation', () => {
     incidentId: 'i'.repeat(64),
     decisionId: 'd'.repeat(64),
     candidateId: 'c'.repeat(64),
+    evidenceId: 'e'.repeat(64), // Added missing field
     severity: 'SEV2',
     service: 'lambda',
     title: 'Test Incident',
+    confidenceScore: 0.85, // Added missing field
     status: 'PENDING',
     createdAt: '2026-01-17T10:00:00.000Z',
     detectionCount: 3,
