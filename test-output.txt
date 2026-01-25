@@ -1,0 +1,3162 @@
+
+> opx-control-plane@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 /home/piyush/projects/opx-control-plane
+
+stderr | test/correlation/correlation-engine.test.ts > CorrelationEngine > evaluateSignal > should handle rule evaluation errors gracefully
+Rule evaluation failed {
+  ruleId: 'rule-lambda-high-error',
+  ruleVersion: '1.0.0',
+  signalId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  error: 'Query failed'
+}
+
+ ✓ test/correlation/correlation-engine.test.ts (26 tests) 31ms
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Determinism > should generate same signal ID for identical CloudWatch metrics
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 6
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Determinism > should generate same signal ID for identical CloudWatch alarms
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-alarm',
+    signalType: 'alarm/opx-lambda-error-rate',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-alarm' },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-alarm',
+    signalType: 'alarm/opx-lambda-error-rate',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-alarm' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Determinism > should generate different signal IDs for different timestamps
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Schema Validation > should accept valid CloudWatch metric
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Schema Validation > should reject invalid CloudWatch metric (missing required fields)
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.failed',
+  dimensions: { source: 'cloudwatch-metric', errorCode: 'VALIDATION_ERROR' },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stderr | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Schema Validation > should reject invalid CloudWatch metric (missing required fields)
+Signal ingestion failed (swallowed) {
+  source: 'cloudwatch-metric',
+  errorCode: 'VALIDATION_ERROR',
+  error: '[\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "metricName"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "object",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "dimensions"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "unit"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    `    "expected": "'Sum' | 'Average' | 'Minimum' | 'Maximum' | 'SampleCount'",\n` +
+    '    "received": "undefined",\n' +
+    '    "code": "invalid_type",\n' +
+    '    "path": [\n' +
+    '      "statistic"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  }\n' +
+    ']'
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Schema Validation > should accept valid structured log (ERROR level)
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-log',
+    signalType: 'log/ERROR',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-log' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Severity Classification > should map alarm name to correct severity (CRITICAL)
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-alarm',
+    signalType: 'alarm/opx-eventstore-write-failure',
+    severity: 'CRITICAL'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-alarm' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Severity Classification > should map alarm name to correct severity (HIGH)
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-alarm',
+    signalType: 'alarm/opx-lambda-error-rate',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-alarm' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Severity Classification > should map log level to severity (FATAL → CRITICAL)
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-log',
+    signalType: 'log/FATAL',
+    severity: 'CRITICAL'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-log' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Severity Classification > should map log level to severity (ERROR → HIGH)
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-log',
+    signalType: 'log/ERROR',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-log' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Confidence Classification > should assign DEFINITIVE confidence to CloudWatch metrics
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+ ✓ test/confidence/confidence-calculator.test.ts (16 tests) 34ms
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Confidence Classification > should assign DEFINITIVE confidence to CloudWatch alarms
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-alarm',
+    signalType: 'alarm/opx-lambda-error-rate',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-alarm' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Confidence Classification > should assign HIGH confidence to structured logs
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-log',
+    signalType: 'log/ERROR',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-log' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Evidence Chain > should preserve raw data in evidence
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Evidence Chain > should include interpreted data in evidence
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Evidence Chain > should compute checksum for evidence
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Traceability > should preserve complete raw data
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-alarm',
+    signalType: 'alarm/opx-lambda-error-rate',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-alarm' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Traceability > should compute deterministic checksum
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 0
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Non-Invasive Failure Handling > should swallow validation errors and return failure result
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.failed',
+  dimensions: { source: 'cloudwatch-metric', errorCode: 'VALIDATION_ERROR' },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stderr | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Non-Invasive Failure Handling > should swallow validation errors and return failure result
+Signal ingestion failed (swallowed) {
+  source: 'cloudwatch-metric',
+  errorCode: 'VALIDATION_ERROR',
+  error: '[\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "metricName"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "object",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "dimensions"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "timestamp"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "number",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "value"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "unit"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    `    "expected": "'Sum' | 'Average' | 'Minimum' | 'Maximum' | 'SampleCount'",\n` +
+    '    "received": "undefined",\n' +
+    '    "code": "invalid_type",\n' +
+    '    "path": [\n' +
+    '      "statistic"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  }\n' +
+    ']'
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Dimension Cardinality > should preserve low-cardinality dimensions
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-metric',
+    signalType: 'OPX/ControlPlane/IncidentCreated',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-metric' },
+  value: 1
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > Dimension Cardinality > should NOT include high-cardinality fields in dimensions
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'cloudwatch-log',
+    signalType: 'log/ERROR',
+    severity: 'HIGH'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'cloudwatch-log' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > EventBridge Events > should ingest EventBridge event with severity from detail
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'eventbridge-event',
+    signalType: 'event/Incident State Changed',
+    severity: 'CRITICAL'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'eventbridge-event' },
+  value: 0
+}
+
+stdout | test/signals/signal-ingestion.test.ts > CP-1: Signal Ingestion Contract > EventBridge Events > should default to INFO severity if no severity in detail
+Metric (swallowed on failure) {
+  metricName: 'signal.ingested',
+  dimensions: {
+    source: 'eventbridge-event',
+    signalType: 'event/Health Check',
+    severity: 'INFO'
+  },
+  value: 1
+}
+Metric (swallowed on failure) {
+  metricName: 'signal.ingestion.latency',
+  dimensions: { source: 'eventbridge-event' },
+  value: 0
+}
+
+ ✓ test/signals/signal-ingestion.test.ts (25 tests) 53ms
+ ❯ test/orchestration/candidate-to-incident.integration.test.ts (11 tests | 2 failed) 53ms
+   × Integration: Candidate → Incident Pipeline > Category 2: Idempotency > Test 2.2: Duplicate CandidateCreated events → same result 14ms
+     → Handler not initialized - call initializeHandler() first
+   × Integration: Candidate → Incident Pipeline > Category 3: Authority Preservation > Test 3.1: AUTO_ENGINE authority flows through 5ms
+     → Handler not initialized - call initializeHandler() first
+stderr | test/candidate/candidate-generator.test.ts > CP-5: Candidate Generator > generateForDetection() > should continue processing if one rule fails
+Failed to generate candidate for rule { ruleId: 'rule-1', detectionId: 'det-trigger', error: 'Query failed' }
+
+stderr | test/candidate/candidate-generator.test.ts > CP-5: Candidate Generator > 🔒 FIX #3: Graph-detection integrity > should skip detections without evidence graph
+Evidence graph not found for detection: det-orphan
+
+stderr | test/candidate/candidate-generator.test.ts > CP-5: Candidate Generator > 🔒 FIX #3: Graph-detection integrity > should skip detections with mismatched graph.detectionId
+Graph-detection mismatch: graph.detectionId=wrong-id, detection.detectionId=det-mismatch
+
+ ✓ test/candidate/candidate-generator.test.ts (18 tests) 78ms
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Deterministic Hash Computation > should generate same hash for same inputs
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:45:42
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:46:42
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Deterministic Hash Computation > should generate different hash for different signalIds
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:59:42
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:60:42
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Deterministic Hash Computation > should generate different hash for different windowStart
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:72:42
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:73:42
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Deterministic Hash Computation > should generate different hash for different ruleId
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:85:42
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:86:42
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Deterministic Hash Computation > should generate same hash regardless of signal order
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:98:42
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:99:42
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Deterministic Hash Computation > should include groupKey in hash
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:111:42
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:112:42
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Template Substitution > should generate valid candidate with correct service
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:127:26
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Template Substitution > should substitute {{severity}} variable
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:142:26
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Template Substitution > should substitute {{signalCount}} variable
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:155:26
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Template Substitution > should substitute {{windowStart}} and {{windowEnd}} variables
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:169:26
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Idempotency > should handle already-exists from store
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:189:41
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Idempotency > should return same candidateId on retry
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:201:42
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:202:42
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > Error Handling > should handle store failure gracefully
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:222:41
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > CP-5 Integration > should call store with valid candidate
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:250:26
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+stderr | test/candidate/candidate-orchestrator.test.ts > CandidateOrchestrator > CP-5 Integration > should include all required candidate fields
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at /home/piyush/projects/opx-control-plane/test/candidate/candidate-orchestrator.test.ts:265:26
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+ ✓ test/candidate/candidate-orchestrator.test.ts (16 tests) 90ms
+stdout | test/automation/end-to-end.integration.test.ts > Phase 5: Automated Learning Operations - Integration Tests
+Integration tests require deployed AWS infrastructure
+EventBridge rules should be disabled before running tests
+Tests will explicitly invoke Lambda functions
+Integration tests complete
+
+ ✓ test/automation/end-to-end.integration.test.ts (40 tests) 24ms
+ ✓ test/orchestration/replay-determinism.test.ts (6 tests) 20ms
+ ✓ test/automation/monitoring.test.ts (44 tests) 31ms
+ ✓ test/candidate/candidate-builder.test.ts (14 tests) 39ms
+ ✓ test/learning/snapshot-service.test.ts (13 tests) 38ms
+stderr | test/detection/detection-engine.test.ts > DetectionEngine > Error Handling > should continue if event emission fails
+Failed to emit DetectionCreated event {
+  error: Error: EventBridge error
+      at /home/piyush/projects/opx-control-plane/test/detection/detection-engine.test.ts:460:9
+      at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+      at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+      at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+      at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+      at processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+      at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+      at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+      at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5),
+  detectionId: 'e179c54788de29980743deca59ddb5f0d8f6501d94426c99e110cc9c7bd42d03'
+}
+
+ ✓ test/detection/detection-engine.test.ts (19 tests) 52ms
+ ✓ test/automation/kill-switch.test.ts (48 tests) 29ms
+ ✓ test/learning/confidence-calibrator.test.ts (13 tests) 25ms
+stderr | test/correlation/end-to-end.test.ts > End-to-End: Signal → Correlation → Candidate > Complete Pipeline > should generate candidate when correlation threshold met
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/end-to-end.test.ts:77:22
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/correlation/end-to-end.test.ts > End-to-End: Signal → Correlation → Candidate > Complete Pipeline > should generate same candidate on replay (idempotency)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/end-to-end.test.ts:133:23
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/end-to-end.test.ts:134:23
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/correlation/end-to-end.test.ts > End-to-End: Signal → Correlation → Candidate > Complete Pipeline > should handle multiple rules independently
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/end-to-end.test.ts:179:22
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/end-to-end.test.ts:179:22
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/correlation/end-to-end.test.ts > End-to-End: Signal → Correlation → Candidate > Data Provider Integration > should fetch detections for correlated signals
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/end-to-end.test.ts:205:7
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stderr | test/correlation/end-to-end.test.ts > End-to-End: Signal → Correlation → Candidate > Data Provider Integration > should fetch graphs for detections
+Confidence assessment failed: Error: Unknown severity: HIGH
+    at CandidateOrchestrator.mapToNormalizedSeverity (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:441:15)
+    at /home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:154:26
+    at Array.map (<anonymous>)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:150:67)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/end-to-end.test.ts:229:7
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+ ✓ test/correlation/end-to-end.test.ts (6 tests) 49ms
+stderr | test/correlation/detection-integration.test.ts > Phase 2.4 Step 5: Detection Integration > Detection Fetching > should fetch detections for correlated signals
+Confidence assessment failed: TypeError: Cannot read properties of undefined (reading 'length')
+    at /home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:43:51
+    at Array.reduce (<anonymous>)
+    at Module.computeSignalSummary (/home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:42:34)
+    at EvidenceBuilder.buildBundle (/home/piyush/projects/opx-control-plane/src/evidence/evidence-builder.ts:56:27)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:161:53)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/detection-integration.test.ts:67:22
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+
+stderr | test/correlation/detection-integration.test.ts > Phase 2.4 Step 5: Detection Integration > Detection Fetching > should handle signals without detections (fail-closed)
+Candidate generation failed {
+  ruleId: 'rule-1',
+  signalCount: 2,
+  error: 'Cannot build candidate with zero detections'
+}
+
+stderr | test/correlation/detection-integration.test.ts > Phase 2.4 Step 5: Detection Integration > Detection Fetching > should pass multiple detections to candidate builder
+Confidence assessment failed: TypeError: Cannot read properties of undefined (reading 'length')
+    at /home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:43:51
+    at Array.reduce (<anonymous>)
+    at Module.computeSignalSummary (/home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:42:34)
+    at EvidenceBuilder.buildBundle (/home/piyush/projects/opx-control-plane/src/evidence/evidence-builder.ts:56:27)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:161:53)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/detection-integration.test.ts:118:22
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+
+stderr | test/correlation/detection-integration.test.ts > Phase 2.4 Step 5: Detection Integration > Detection Fetching > should be idempotent - same signals produce same candidate
+Confidence assessment failed: TypeError: Cannot read properties of undefined (reading 'length')
+    at /home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:43:51
+    at Array.reduce (<anonymous>)
+    at Module.computeSignalSummary (/home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:42:34)
+    at EvidenceBuilder.buildBundle (/home/piyush/projects/opx-control-plane/src/evidence/evidence-builder.ts:56:27)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:161:53)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/detection-integration.test.ts:162:23
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+Confidence assessment failed: TypeError: Cannot read properties of undefined (reading 'length')
+    at /home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:43:51
+    at Array.reduce (<anonymous>)
+    at Module.computeSignalSummary (/home/piyush/projects/opx-control-plane/src/evidence/signal-summary.ts:42:34)
+    at EvidenceBuilder.buildBundle (/home/piyush/projects/opx-control-plane/src/evidence/evidence-builder.ts:56:27)
+    at CandidateOrchestrator.generateCandidate (/home/piyush/projects/opx-control-plane/src/candidate/candidate-orchestrator.ts:161:53)
+    at CorrelationExecutor.execute (/home/piyush/projects/opx-control-plane/src/correlation/correlation-executor.ts:124:59)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /home/piyush/projects/opx-control-plane/test/correlation/detection-integration.test.ts:163:23
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:11)
+
+stderr | test/correlation/detection-integration.test.ts > Phase 2.4 Step 5: Detection Integration > Regression Tests > should not change window logic
+Candidate generation failed {
+  ruleId: 'rule-1',
+  signalCount: 2,
+  error: 'Cannot build candidate with zero detections'
+}
+
+ ✓ test/correlation/detection-integration.test.ts (8 tests) 81ms
+ ❯ test/promotion/promotion-engine.test.ts (11 tests | 11 failed) 59ms
+   × CP-6: Promotion Engine > successful promotion > should PROMOTE eligible candidate 18ms
+     → this.gate.validateRequest is not a function
+   × CP-6: Promotion Engine > successful promotion > should store decision 6ms
+     → this.gate.validateRequest is not a function
+   × CP-6: Promotion Engine > successful promotion > should emit audit 2ms
+     → this.gate.validateRequest is not a function
+   × CP-6: Promotion Engine > gate validation > should REJECT invalid request 14ms
+     → expected [Function] to throw error including 'Gate validation failed' but got 'this.gate.validateRequest is not a fu…'
+   × CP-6: Promotion Engine > candidate not found > should REJECT when candidate not found 4ms
+     → expected [Function] to throw error including 'Candidate not found' but got 'this.gate.validateRequest is not a fu…'
+   × CP-6: Promotion Engine > policy not found > should REJECT when policy not found 4ms
+     → expected [Function] to throw error including 'Policy not found' but got 'this.gate.validateRequest is not a fu…'
+   × CP-6: Promotion Engine > 🔒 INV-6.6: Audit failure must not block decision > should persist decision even when audit fails 2ms
+     → this.gate.validateRequest is not a function
+   × CP-6: Promotion Engine > 🔒 CORRECTION 1: decisionId excludes authorityId > should produce same decisionId for different authorities 2ms
+     → this.gate.validateRequest is not a function
+   × CP-6: Promotion Engine > 🔒 INV-6.4: Deterministic outcome > should produce same decision for same inputs 2ms
+     → this.gate.validateRequest is not a function
+   × CP-6: Promotion Engine > 🔒 INV-6.4: Deterministic outcome > should use injected currentTime for decidedAt 1ms
+     → this.gate.validateRequest is not a function
+   × CP-6: Promotion Engine > idempotency > should return existing decision if already stored 1ms
+     → this.gate.validateRequest is not a function
+ ✓ test/learning/validation-gate.test.ts (20 tests) 25ms
+ ✓ test/learning/pattern-extractor.test.ts (12 tests) 29ms
+ ✓ test/correlation/correlation-rule.schema.test.ts (30 tests) 37ms
+stderr | test/controller/incident-controller.test.ts > CP-8: Incident Controller > CORRECTION 3: Error translation > should translate CP-7 errors to HTTP-safe responses
+CP-7 error: {
+  requestId: 'fdd7c09e-2325-4eea-ad14-e11be87efa84',
+  error: 'Illegal transition: PENDING → OPEN',
+  stack: 'Error: Illegal transition: PENDING → OPEN\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/incident-controller.test.ts:204:9\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+stderr | test/controller/incident-controller.test.ts > CP-8: Incident Controller > CORRECTION 3: Error translation > should not expose raw CP-7 error messages
+CP-7 error: {
+  requestId: 'dcfb7a44-d261-4283-a3df-4394ea858b3e',
+  error: 'DynamoDB ConditionalCheckFailedException on table incidents_prod',
+  stack: 'Error: DynamoDB ConditionalCheckFailedException on table incidents_prod\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/incident-controller.test.ts:217:9\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+ ✓ test/controller/incident-controller.test.ts (16 tests) 70ms
+stderr | test/detection/detection-store.test.ts > DetectionStore > getDetectionsBySignalIds > should validate detection schema for each result
+Failed to query detections for signal {
+  signalId: 'signal-1',
+  error: '[\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "array",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "signalIds"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "service"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "severity"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "ruleId"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "ruleVersion"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "detectedAt"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "number",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "confidence"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "object",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "attributes"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  }\n' +
+    ']'
+}
+
+stderr | test/detection/detection-store.test.ts > DetectionStore > getDetectionsBySignalIds > should continue on ResourceNotFoundException
+Failed to query detections for signal { signalId: 'signal-1', error: 'Resource not found' }
+
+stderr | test/detection/detection-store.test.ts > DetectionStore > getDetectionsBySignalIds > should throw error for critical DynamoDB errors
+Failed to query detections for signal { signalId: 'signal-1', error: 'DynamoDB throttling' }
+
+ ✓ test/detection/detection-store.test.ts (22 tests) 68ms
+ ✓ test/learning/outcome-store.test.ts (10 tests) 37ms
+ ✓ test/detection/rule-evaluator.test.ts (19 tests) 21ms
+ ↓ test/integration/error-handling.integration.test.ts (13 tests | 13 skipped)
+ ✓ test/automation/snapshot-handler.test.ts (30 tests) 18ms
+ ✓ test/candidate/determinism.test.ts (10 tests) 14ms
+ ✓ test/promotion/promotion-gate.test.ts (12 tests) 30ms
+ ❯ test/promotion/promotion-schema.test.ts (24 tests | 4 failed) 42ms
+   × CP-6: Promotion Schemas > PromotionDecision > should accept valid decision 13ms
+     → expected false to be true // Object.is equality
+   × CP-6: Promotion Schemas > PromotionDecision > should accept optional justification 2ms
+     → expected false to be true // Object.is equality
+   × CP-6: Promotion Schemas > PromotionDecision > should accept optional sessionId 1ms
+     → expected false to be true // Object.is equality
+   × CP-6: Promotion Schemas > PromotionAuditRecord > should accept valid audit record 2ms
+     → expected false to be true // Object.is equality
+ ✓ test/learning/outcome-schema.test.ts (24 tests) 20ms
+ ✓ test/confidence/confidence-factors.test.ts (31 tests) 19ms
+ ✓ test/automation/automation-audit-store.test.ts (15 tests) 52ms
+ ✓ test/detection/events/detection-created.test.ts (23 tests) 24ms
+ ✓ test/evidence/evidence-graph-builder.test.ts (19 tests) 34ms
+ ✓ test/learning/outcome-recorder.test.ts (11 tests) 25ms
+ ✓ test/promotion/determinism.test.ts (12 tests) 10ms
+ ✓ test/controller/validation.test.ts (34 tests) 19ms
+ ❯ test/correlation/correlation-rule-store.test.ts (16 tests | 1 failed) 88ms
+   × CorrelationRuleStore > getRule > should retrieve rule by ID and version 16ms
+     → expected { …(11) } to deeply equal { …(11) }
+ ✓ test/learning/learning-pipeline.integration.test.ts (1 test) 9ms
+ ❯ test/evidence/evidence-bundle.integration.test.ts (11 tests | 2 failed) 1545ms
+   × Evidence Bundle Integration > Build and Store Evidence > should store and retrieve evidence bundle 811ms
+     → expected false to be true // Object.is equality
+   × Evidence Bundle Integration > Idempotency > should be idempotent when storing same bundle twice 234ms
+     → expected false to be true // Object.is equality
+   ✓ Evidence Bundle Integration > Determinism > should generate same evidenceId on replay 473ms
+ ✓ test/candidate/candidate-store.test.ts (20 tests) 19ms
+ ✓ test/controller/authority-validator.test.ts (20 tests) 15ms
+ ❯ test/incident/incident-manager.test.ts (9 tests | 2 failed) 29ms
+   × Phase 3.4: Incident Manager (Canonical) > createIncident > should create incident from promotion result 12ms
+     → Cannot read properties of undefined (reading 'uniqueRules')
+   × Phase 3.4: Incident Manager (Canonical) > createIncident > should derive severity from evidence (max severity) 2ms
+     → Cannot read properties of undefined (reading 'uniqueRules')
+stdout | test/orchestration/candidate-event-handler.test.ts > CandidateEventHandler > Happy Path > processes valid CandidateCreated event
+Incident created from promotion {
+  candidateId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  incidentId: 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
+  state: 'OPEN',
+  severity: 'SEV2',
+  confidenceScore: 0.8,
+  confidenceBand: 'HIGH',
+  requestId: 'request-123'
+}
+
+ ❯ test/orchestration/candidate-event-handler.test.ts (8 tests | 6 failed) 45ms
+   × CandidateEventHandler > Schema Validation > throws on invalid eventType 12ms
+     → mockOrchestrator is not defined
+   × CandidateEventHandler > Schema Validation > throws on invalid candidateId format 2ms
+     → mockOrchestrator is not defined
+   × CandidateEventHandler > Schema Validation > throws on missing required field 2ms
+     → mockOrchestrator is not defined
+   × CandidateEventHandler > Authority Context > builds AUTO_ENGINE authority correctly 1ms
+     → mockOrchestrator is not defined
+   × CandidateEventHandler > Error Propagation > propagates orchestrator errors 1ms
+     → mockOrchestrator is not defined
+   × CandidateEventHandler > Error Propagation > propagates validation errors 2ms
+     → mockOrchestrator is not defined
+ ✓ test/controller/request-validator.test.ts (26 tests) 23ms
+ ✓ test/candidate/candidate-schema.test.ts (21 tests) 31ms
+ ✓ test/signal/signal-id.test.ts (16 tests) 15ms
+ ❯ test/incident/state-machine.test.ts (35 tests | 10 failed) 56ms
+   × CP-7: Incident State Machine > legal transitions > should allow PENDING → OPEN 16ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident State Machine > legal transitions > should allow OPEN → RESOLVED 2ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident State Machine > illegal transitions (CORRECTION 1 & 2) > should reject PENDING → CLOSED (CORRECTION 1) 4ms
+     → expected 'No transitions allowed from PENDING. …' to contain 'Illegal transition'
+   × CP-7: Incident State Machine > illegal transitions (CORRECTION 1 & 2) > should reject CLOSED → OPEN (CORRECTION 2) 2ms
+     → expected 'No transitions allowed from CLOSED. L…' to contain 'terminal'
+   × CP-7: Incident State Machine > illegal transitions (CORRECTION 1 & 2) > should reject CLOSED → any state (terminal) 3ms
+     → expected 'No transitions allowed from CLOSED. L…' to contain 'terminal'
+   × CP-7: Incident State Machine > legal next states > should return correct next states for PENDING 3ms
+     → expected [] to deeply equal [ 'OPEN' ]
+   × CP-7: Incident State Machine > legal next states > should return correct next states for OPEN 4ms
+     → expected [ 'ACKNOWLEDGED', 'MITIGATING' ] to include 'RESOLVED'
+   × CP-7: Incident State Machine > fail-closed behavior (INV-7.8) > should provide reason for illegal transition 2ms
+     → expected 'No transitions allowed from PENDING. …' to contain 'Illegal transition'
+   × CP-7: Incident State Machine > fail-closed behavior (INV-7.8) > should provide reason for terminal state transition 2ms
+     → expected 'No transitions allowed from CLOSED. L…' to contain 'terminal'
+   × CP-7: Incident State Machine > fail-closed behavior (INV-7.8) > should list legal transitions in error message 1ms
+     → expected 'No transitions allowed from PENDING. …' to contain 'OPEN'
+ ✓ test/learning/idempotency.integration.test.ts (5 tests) 18ms
+ ✓ test/normalization/rules.test.ts (11 tests) 19ms
+stderr | test/orchestration/orchestration-store.test.ts > OrchestrationStore > logAttempt > does not throw on DynamoDB error
+Failed to log orchestration attempt {
+  candidateId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  attemptId: 'attempt-123',
+  error: 'DynamoDB error'
+}
+
+stderr | test/orchestration/orchestration-store.test.ts > OrchestrationStore > getAttempts > returns empty array on DynamoDB error
+Failed to get orchestration attempts {
+  candidateId: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  error: 'DynamoDB error'
+}
+
+ ✓ test/orchestration/orchestration-store.test.ts (10 tests) 54ms
+ ✓ test/automation/automation-audit.schema.test.ts (24 tests) 30ms
+ ✓ test/domain/incident.test.ts (20 tests) 26ms
+ ✓ test/normalization/determinism.test.ts (5 tests) 17ms
+ ❯ test/incident/incident-schema.test.ts (21 tests | 7 failed) 44ms
+   × CP-7: Incident Schema Validation > schema validation > should accept valid incident 16ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident Schema Validation > timeline fields > should accept incident with all timeline fields 2ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident Schema Validation > timeline fields > should accept incident with only createdAt 3ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident Schema Validation > resolution fields > should accept incident with resolution fields 2ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident Schema Validation > resolution fields > should accept incident without resolution fields 2ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident Schema Validation > resolution metadata schema > should accept valid resolution metadata 1ms
+     → expected false to be true // Object.is equality
+   × CP-7: Incident Schema Validation > resolution metadata schema > should accept all resolution types 2ms
+     → expected false to be true // Object.is equality
+ ✓ test/replay/idempotency-keys.test.ts (26 tests) 17ms
+ ✓ test/automation/manual-trigger-handler.test.ts (21 tests) 12ms
+ ✓ test/orchestration/orchestration-event.schema.test.ts (15 tests) 19ms
+stderr | test/normalization/engine.test.ts > CP-2: Normalization Engine > normalize > should handle normalization failure gracefully
+Normalization failed (swallowed) {
+  signalId: 'test-123',
+  errorCode: 'VALIDATION_ERROR',
+  error: '[\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "signalType"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    `    "expected": "'cloudwatch-metric' | 'cloudwatch-alarm' | 'cloudwatch-log' | 'eventbridge-event' | 'api-request' | 'health-probe'",\n` +
+    '    "received": "undefined",\n' +
+    '    "code": "invalid_type",\n' +
+    '    "path": [\n' +
+    '      "source"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "timestamp"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "ingestedAt"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    `    "expected": "'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO'",\n` +
+    '    "received": "undefined",\n' +
+    '    "code": "invalid_type",\n' +
+    '    "path": [\n' +
+    '      "severity"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    `    "expected": "'DEFINITIVE' | 'HIGH' | 'MEDIUM' | 'LOW'",\n` +
+    '    "received": "undefined",\n' +
+    '    "code": "invalid_type",\n' +
+    '    "path": [\n' +
+    '      "confidence"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "title"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "array",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "evidence"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "object",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "raw"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  },\n' +
+    '  {\n' +
+    '    "code": "invalid_type",\n' +
+    '    "expected": "string",\n' +
+    '    "received": "undefined",\n' +
+    '    "path": [\n' +
+    '      "rawChecksum"\n' +
+    '    ],\n' +
+    '    "message": "Required"\n' +
+    '  }\n' +
+    ']'
+}
+
+ ✓ test/normalization/engine.test.ts (6 tests) 28ms
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should ingest valid signal
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 1 }
+Signal ingested {
+  signalId: 'd8bead04fc5f5c777ed5ca5bc592f33741ea9b199cdc75e2d804d2f496c5620b',
+  source: 'CLOUDWATCH_ALARM',
+  service: 'lambda',
+  severity: 'SEV2',
+  observedAt: '2026-01-17T10:23:45.123Z',
+  identityWindow: '2026-01-17T10:23Z'
+}
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should reject invalid signal schema (wrong state)
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"OK\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 1 }
+
+stderr | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should reject invalid signal schema (wrong state)
+Failed to normalize signal { alarmName: 'lambda-SEV2-HighErrorRate', newStateValue: 'OK' }
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should reject signal without service
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"InvalidAlarmName\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 1 }
+
+stderr | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should reject signal without service
+Failed to normalize signal { alarmName: 'InvalidAlarmName', newStateValue: 'ALARM' }
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should reject signal without severity
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 1 }
+
+stderr | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should reject signal without severity
+Failed to normalize signal { alarmName: 'lambda-HighErrorRate', newStateValue: 'ALARM' }
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should handle duplicate signals idempotently
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 1 }
+Duplicate signal (idempotent) {
+  signalId: 'd8bead04fc5f5c777ed5ca5bc592f33741ea9b199cdc75e2d804d2f496c5620b'
+}
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should continue if EventBridge emission fails (CORRECTION 4)
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 1 }
+Signal ingested {
+  signalId: 'd8bead04fc5f5c777ed5ca5bc592f33741ea9b199cdc75e2d804d2f496c5620b',
+  source: 'CLOUDWATCH_ALARM',
+  service: 'lambda',
+  severity: 'SEV2',
+  observedAt: '2026-01-17T10:23:45.123Z',
+  identityWindow: '2026-01-17T10:23Z'
+}
+
+stderr | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should continue if EventBridge emission fails (CORRECTION 4)
+EventBridge emit failed (non-blocking) {
+  error: 'Throttled',
+  signalId: 'd8bead04fc5f5c777ed5ca5bc592f33741ea9b199cdc75e2d804d2f496c5620b'
+}
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should throw on DynamoDB error (retry)
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 1 }
+
+stderr | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should throw on DynamoDB error (retry)
+Signal ingestion failed { error: 'DynamoDB error', record: 'test-message-id' }
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should process multiple records
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    },
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"dynamodb-SEV1-HighLatency\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 2 }
+Signal ingested {
+  signalId: 'd8bead04fc5f5c777ed5ca5bc592f33741ea9b199cdc75e2d804d2f496c5620b',
+  source: 'CLOUDWATCH_ALARM',
+  service: 'lambda',
+  severity: 'SEV2',
+  observedAt: '2026-01-17T10:23:45.123Z',
+  identityWindow: '2026-01-17T10:23Z'
+}
+Signal ingested {
+  signalId: 'd01ad7f797ffd186d4c08560916cb506b3c6c4b4c1022bb126a22015396282cf',
+  source: 'CLOUDWATCH_ALARM',
+  service: 'dynamodb',
+  severity: 'SEV1',
+  observedAt: '2026-01-17T10:23:45.123Z',
+  identityWindow: '2026-01-17T10:23Z'
+}
+
+stdout | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should continue processing after invalid signal
+RAW EVENT: {
+  "Records": [
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"OK\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    },
+    {
+      "EventSource": "aws:sns",
+      "EventVersion": "1.0",
+      "EventSubscriptionArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+      "Sns": {
+        "Type": "Notification",
+        "MessageId": "test-message-id",
+        "TopicArn": "arn:aws:sns:us-east-1:123456789012:test-topic",
+        "Subject": "Test",
+        "Message": "{\"AlarmName\":\"lambda-SEV2-HighErrorRate\",\"AlarmDescription\":\"Lambda error rate is too high\",\"AWSAccountId\":\"123456789012\",\"NewStateValue\":\"ALARM\",\"NewStateReason\":\"Threshold Crossed\",\"StateChangeTime\":\"2026-01-17T10:23:45.123Z\",\"Region\":\"us-east-1\",\"AlarmArn\":\"arn:aws:cloudwatch:us-east-1:123456789012:alarm:lambda-SEV2-HighErrorRate\",\"OldStateValue\":\"OK\"}",
+        "Timestamp": "2026-01-17T10:23:45.123Z",
+        "SignatureVersion": "1",
+        "Signature": "test-signature",
+        "SigningCertUrl": "https://test.com",
+        "UnsubscribeUrl": "https://test.com",
+        "MessageAttributes": {}
+      }
+    }
+  ]
+}
+Signal ingestor invoked { recordCount: 2 }
+Signal ingested {
+  signalId: 'd8bead04fc5f5c777ed5ca5bc592f33741ea9b199cdc75e2d804d2f496c5620b',
+  source: 'CLOUDWATCH_ALARM',
+  service: 'lambda',
+  severity: 'SEV2',
+  observedAt: '2026-01-17T10:23:45.123Z',
+  identityWindow: '2026-01-17T10:23Z'
+}
+
+stderr | test/signal/signal-ingestor.test.ts > signal-ingestor handler > should continue processing after invalid signal
+Failed to normalize signal { alarmName: 'lambda-SEV2-HighErrorRate', newStateValue: 'OK' }
+
+ ✓ test/signal/signal-ingestor.test.ts (9 tests) 57ms
+ ✓ test/controller/rate-limiter.test.ts (14 tests) 61ms
+ ✓ test/candidate/correlation-rule.test.ts (18 tests) 39ms
+ ✓ test/learning/offline-processing.integration.test.ts (3 tests) 9ms
+ ✓ test/signal/signal-normalizer.test.ts (13 tests) 22ms
+ ✓ test/integration/event-store.test.ts (15 tests) 16ms
+stderr | test/replay/idempotency-checker.test.ts > IdempotencyChecker > evidenceExists > should return exists=false on error (fail-closed)
+Error checking evidence existence: Error: DB error
+    at /home/piyush/projects/opx-control-plane/test/replay/idempotency-checker.test.ts:86:66
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)
+
+stderr | test/replay/idempotency-checker.test.ts > IdempotencyChecker > promotionExists > should return exists=false on error (fail-closed)
+Error checking promotion existence: Error: DB error
+    at /home/piyush/projects/opx-control-plane/test/replay/idempotency-checker.test.ts:133:67
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)
+
+stderr | test/replay/idempotency-checker.test.ts > IdempotencyChecker > incidentExists > should return exists=false on error (fail-closed)
+Error checking incident existence: Error: DB error
+    at /home/piyush/projects/opx-control-plane/test/replay/idempotency-checker.test.ts:183:66
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)
+
+ ✓ test/replay/idempotency-checker.test.ts (10 tests) 25ms
+ ✓ test/incident/idempotency.test.ts (14 tests) 44ms
+ ✓ test/learning/human-validation.integration.test.ts (5 tests) 13ms
+ ✓ test/detection/rule-schema.test.ts (9 tests) 13ms
+ ✓ test/promotion/authority.test.ts (18 tests) 19ms
+ ✓ test/detection/determinism.test.ts (8 tests) 14ms
+ ✓ test/learning/append-only.integration.test.ts (4 tests) 21ms
+ ✓ test/automation/calibration-handler.test.ts (18 tests) 10ms
+ ✓ test/orchestration/incident-orchestrator.test.ts (1 test) 11ms
+stderr | test/controller/response-builder.test.ts > CP-8: Response Builder > CORRECTION 3: translateCP7Error > should translate INCIDENT_NOT_FOUND to 404
+CP-7 error: {
+  requestId: 'req-123',
+  error: 'Incident not found: abc123',
+  stack: 'Error: Incident not found: abc123\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/response-builder.test.ts:66:21\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+stderr | test/controller/response-builder.test.ts > CP-8: Response Builder > CORRECTION 3: translateCP7Error > should translate ILLEGAL_TRANSITION to 409
+CP-7 error: {
+  requestId: 'req-123',
+  error: 'Illegal transition: PENDING → CLOSED',
+  stack: 'Error: Illegal transition: PENDING → CLOSED\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/response-builder.test.ts:75:21\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+stderr | test/controller/response-builder.test.ts > CP-8: Response Builder > CORRECTION 3: translateCP7Error > should translate terminal state error to 409
+CP-7 error: {
+  requestId: 'req-123',
+  error: 'Cannot transition from terminal state CLOSED',
+  stack: 'Error: Cannot transition from terminal state CLOSED\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/response-builder.test.ts:84:21\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+stderr | test/controller/response-builder.test.ts > CP-8: Response Builder > CORRECTION 3: translateCP7Error > should translate resolution required to 400
+CP-7 error: {
+  requestId: 'req-123',
+  error: 'RESOLVED requires resolution metadata',
+  stack: 'Error: RESOLVED requires resolution metadata\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/response-builder.test.ts:93:21\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+stderr | test/controller/response-builder.test.ts > CP-8: Response Builder > CORRECTION 3: translateCP7Error > should translate resolution immutable to 409
+CP-7 error: {
+  requestId: 'req-123',
+  error: 'Resolution already set',
+  stack: 'Error: Resolution already set\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/response-builder.test.ts:102:21\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+stderr | test/controller/response-builder.test.ts > CP-8: Response Builder > CORRECTION 3: translateCP7Error > should default to 500 for unknown errors
+CP-7 error: {
+  requestId: 'req-123',
+  error: 'Unknown error',
+  stack: 'Error: Unknown error\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/response-builder.test.ts:111:21\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+stderr | test/controller/response-builder.test.ts > CP-8: Response Builder > CORRECTION 3: translateCP7Error > should never expose raw CP-7 error messages
+CP-7 error: {
+  requestId: 'req-123',
+  error: 'Internal database constraint violation on table incidents_v1',
+  stack: 'Error: Internal database constraint violation on table incidents_v1\n' +
+    '    at /home/piyush/projects/opx-control-plane/test/controller/response-builder.test.ts:130:21\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:146:14\n' +
+    '    at file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:533:11\n' +
+    '    at runWithTimeout (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:39:7)\n' +
+    '    at runTest (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1056:17)\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///home/piyush/projects/opx-control-plane/node_modules/@vitest/runner/dist/index.js:1262:5)'
+}
+
+ ✓ test/controller/response-builder.test.ts (12 tests) 32ms
+ ✓ test/learning/snapshot.test.ts (8 tests) 14ms
+ ✓ test/signal/signal-event.schema.test.ts (19 tests) 38ms
+stderr | test/detection/rule-loader.test.ts > CP-3: Rule Loader
+Rules directory not found: /home/piyush/projects/opx-control-plane/rules
+
+ ❯ test/detection/rule-loader.test.ts (13 tests | 6 failed) 24ms
+   × CP-3: Rule Loader > loadRule > should load rule by ID and version 8ms
+     → expected null not to be null
+   × CP-3: Rule Loader > listApplicableRules > should find rules matching signal type 1ms
+     → expected 0 to be greater than 0
+   × CP-3: Rule Loader > listApplicableRules > should find rules matching severity 3ms
+     → expected false to be true // Object.is equality
+   × CP-3: Rule Loader > listRuleVersions > should list all versions of a rule 3ms
+     → expected [] to include '1.0.0'
+   × CP-3: Rule Loader > loadLatestRule (TOOLING ONLY) > should load latest version 1ms
+     → expected null not to be null
+   × CP-3: Rule Loader > getAllRules > should return all loaded rules 1ms
+     → expected 0 to be greater than or equal to 5
+ ✓ test/integration/idempotency.test.ts (12 tests) 18ms
+ ✓ test/automation/rate-limiter.test.ts (14 tests) 15ms
+stdout | test/automation/retry.test.ts > withRetry > should retry on failure
+Attempt 1 failed, retrying in 10ms... { error: 'Attempt 1 failed', attempt: 1, maxRetries: 3 }
+
+stdout | test/automation/retry.test.ts > withRetry > should retry on failure
+Attempt 2 failed, retrying in 20ms... { error: 'Attempt 2 failed', attempt: 2, maxRetries: 3 }
+
+stdout | test/automation/retry.test.ts > withRetry > should throw last error after all retries exhausted
+Attempt 1 failed, retrying in 10ms... { error: 'Always fails', attempt: 1, maxRetries: 2 }
+
+stdout | test/automation/retry.test.ts > withRetry > should throw last error after all retries exhausted
+Attempt 2 failed, retrying in 20ms... { error: 'Always fails', attempt: 2, maxRetries: 2 }
+
+stdout | test/automation/retry.test.ts > withRetry > should apply exponential backoff
+Attempt 1 failed, retrying in 100ms... { error: 'Fail 1', attempt: 1, maxRetries: 2 }
+
+ ✓ test/integration/iam-auth.test.ts (6 tests) 5ms
+ ✓ test/signal/signal-store.test.ts (7 tests) 22ms
+stdout | test/automation/retry.test.ts > withRetry > should apply exponential backoff
+Attempt 2 failed, retrying in 200ms... { error: 'Fail 2', attempt: 2, maxRetries: 2 }
+
+ ✓ test/incident/determinism.test.ts (10 tests) 8ms
+stdout | test/automation/retry.test.ts > withRetry > should cap delay at maxDelayMs
+Attempt 1 failed, retrying in 1000ms... { error: 'Fail 1', attempt: 1, maxRetries: 2 }
+
+ ✓ test/learning/calibration.test.ts (9 tests) 10ms
+ ✓ test/automation/pattern-extraction-handler.test.ts (6 tests) 5ms
+ ✓ test/automation/audit-id.test.ts (9 tests) 7ms
+ ✓ test/detection/field-accessor.test.ts (14 tests) 5ms
+stdout | test/automation/retry.test.ts > withRetry > should cap delay at maxDelayMs
+Attempt 2 failed, retrying in 500ms... { error: 'Fail 2', attempt: 2, maxRetries: 2 }
+
+ ✓ test/learning/resolution-summary.test.ts (8 tests) 6ms
+stdout | test/integration/idempotency.integration.test.ts > Integration: Idempotency > Scenario 9: should handle idempotency under retry storm
+Response statuses: [
+  501, 501, 501, 501,
+  501, 501, 501, 501,
+  501, 501
+]
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+Error response: 501 {
+  "error": "NOT_IMPLEMENTED",
+  "message": "Create incident not implemented"
+}
+
+stderr | test/integration/idempotency.integration.test.ts > Integration: Idempotency > Scenario 9: should handle idempotency under retry storm
+Request 0 failed with status 501
+
+ ❯ test/integration/idempotency.integration.test.ts (4 tests | 4 failed) 2768ms
+   × Integration: Idempotency > Scenario 6: should handle idempotent create with client-provided key 765ms
+     → expected 501 to be 201 // Object.is equality
+   × Integration: Idempotency > Scenario 7: should handle idempotent create with auto-generated key 624ms
+     → expected 501 to be 201 // Object.is equality
+   × Integration: Idempotency > Scenario 8: should reject idempotency key reuse with different request 592ms
+     → expected 501 to be 201 // Object.is equality
+   × Integration: Idempotency > Scenario 9: should handle idempotency under retry storm 785ms
+     → expected [ 200, 201 ] to include 501
+ ✓ test/incident/incident-status.test.ts (17 tests) 11ms
+(node:2515) [DEP0066] DeprecationWarning: OutgoingMessage.prototype._headers is deprecated
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:2365) [DEP0066] DeprecationWarning: OutgoingMessage.prototype._headers is deprecated
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ✓ test/promotion/incident-identity.test.ts (8 tests) 10ms
+ ✓ test/domain/errors.test.ts (7 tests) 9ms
+stdout | test/automation/retry.test.ts > withRetry > should preserve error details
+Attempt 1 failed, retrying in 10ms... { error: 'Custom error', attempt: 1, maxRetries: 1 }
+
+stdout | test/automation/retry.test.ts > withRetry > should work with async operations
+Attempt 1 failed, retrying in 10ms... { error: 'Attempt 1 failed', attempt: 1, maxRetries: 3 }
+
+stdout | test/automation/retry.test.ts > withRetry > should work with async operations
+Attempt 2 failed, retrying in 20ms... { error: 'Attempt 2 failed', attempt: 2, maxRetries: 3 }
+
+ ✓ test/automation/retry.test.ts (8 tests) 1924ms
+   ✓ withRetry > should apply exponential backoff 303ms
+   ✓ withRetry > should cap delay at maxDelayMs 1503ms
+ ✓ test/learning/outcome-id.test.ts (9 tests) 12ms
+ ✓ test/promotion/policy-evaluator.test.ts (3 tests) 4ms
+ ❯ test/integration/iam-auth.integration.test.ts (3 tests | 3 failed) 4461ms
+   × Integration: IAM Authorization > Scenario 10: should allow Creator role to create incidents 1013ms
+     → User: arn:aws:iam::998461587244:user/Dev-Shubh is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/OpxIncidentCreator
+   × Integration: IAM Authorization > Scenario 11: should allow Reader role to view incidents 1232ms
+     → User: arn:aws:iam::998461587244:user/Dev-Shubh is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/OpxIncidentReader
+   × Integration: IAM Authorization > Scenario 12: should allow Approver role to approve actions 2214ms
+     → User: arn:aws:iam::998461587244:user/Dev-Shubh is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/OpxIncidentApprover
+ ❯ test/integration/replay.integration.test.ts (3 tests | 3 failed) 5489ms
+   × Integration: Replay Integrity > Scenario 13: should detect replay integrity violation (hash mismatch) - returns 409 1721ms
+     → The provided key element does not match the schema
+   × Integration: Replay Integrity > Scenario 14: should detect event store gap - returns 409 1239ms
+     → expected 404 to be 200 // Object.is equality
+   × Integration: Replay Integrity > Scenario 16: should handle clock skew tolerance 2527ms
+     → expected 404 to be 200 // Object.is equality
+ ❯ test/integration/lifecycle.integration.test.ts (6 tests | 6 failed) 11672ms
+   × Integration: Full Incident Lifecycle > Scenario 1: should complete full incident lifecycle 1013ms
+     → expected 501 to be 201 // Object.is equality
+   × Integration: Full Incident Lifecycle > Scenario 2: should reject concurrent transitions deterministically 1302ms
+     → expected [ 400, 400 ] to include 200
+   × Integration: Full Incident Lifecycle > Scenario 3: should reject invalid transitions (fail-closed) 819ms
+     → expected undefined to be 'INVALID_TRANSITION' // Object.is equality
+   × Integration: Full Incident Lifecycle > Scenario 4: should replay after multiple transitions 3139ms
+     → expected 404 to be 200 // Object.is equality
+   × Integration: Full Incident Lifecycle > Scenario 5: should replay after rejected transition 2969ms
+     → expected 404 to be 200 // Object.is equality
+   × Integration: Full Incident Lifecycle > Scenario 15: should enforce terminal state (CLOSED) 2427ms
+     → expected undefined to be 'INVALID_TRANSITION' // Object.is equality
+ ✓ test/incident/incident-lifecycle.integration.test.ts (13 tests) 13495ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > Incident Creation > should create incident from promotion result 913ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > Incident Creation > should be idempotent - return existing incident on duplicate create 467ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should transition OPEN → ACKNOWLEDGED 938ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should transition OPEN → MITIGATING 926ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should transition ACKNOWLEDGED → MITIGATING 1372ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should transition MITIGATING → RESOLVED with metadata 1372ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should transition RESOLVED → CLOSED 1826ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should reject invalid transition OPEN → RESOLVED 676ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should reject transition from CLOSED (terminal state) 2035ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should reject transition with insufficient authority 1141ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > State Transitions > should reject transition without required metadata 1134ms
+   ✓ Phase 3.4: Incident Lifecycle Integration > Determinism > should produce same incidentId for same evidence 463ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 67 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/correlation/correlation-rule-store.test.ts > CorrelationRuleStore > getRule > should retrieve rule by ID and version
+AssertionError: expected { …(11) } to deeply equal { …(11) }
+
+- Expected
++ Received
+
+  Object {
+    "candidateTemplate": Object {
+      "description": "{{signalCount}} alarms detected",
+      "tags": Array [
+        "auto-correlated",
+      ],
+      "title": "Lambda service experiencing high error rate",
+    },
+    "createdAt": "2026-01-17T00:00:00Z",
+    "createdBy": "system",
+-   "enabled": true,
++   "enabled": false,
+    "filters": Object {
+      "service": Array [
+        "lambda",
+      ],
+      "severity": Array [
+        "SEV2",
+      ],
+      "signalType": Array [
+        "ALARM_STATE_CHANGE",
+      ],
+      "source": Array [
+        "CLOUDWATCH_ALARM",
+      ],
+    },
+    "groupBy": Object {
+      "identityWindow": false,
+      "service": true,
+      "severity": true,
+    },
+    "ruleId": "rule-lambda-high-error",
+    "ruleName": "Lambda High Error Rate",
+    "ruleVersion": "1.0.0",
+    "threshold": Object {
+      "maxSignals": 10,
+      "minSignals": 2,
+    },
+    "timeWindow": Object {
+      "alignment": "fixed",
+      "duration": "PT5M",
+    },
+  }
+
+ ❯ test/correlation/correlation-rule-store.test.ts:105:22
+    103|       const result = await store.getRule('rule-lambda-high-error', '1.…
+    104| 
+    105|       expect(result).toEqual(mockRule);
+       |                      ^
+    106|       expect(dynamoMock.calls()).toHaveLength(1);
+    107|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/67]⎯
+
+ FAIL  test/detection/rule-loader.test.ts > CP-3: Rule Loader > loadRule > should load rule by ID and version
+AssertionError: expected null not to be null
+ ❯ test/detection/rule-loader.test.ts:39:24
+     37|       const rule = loader.loadRule('lambda-error-rate', '1.0.0');
+     38| 
+     39|       expect(rule).not.toBeNull();
+       |                        ^
+     40|       expect(rule?.ruleId).toBe('lambda-error-rate');
+     41|       expect(rule?.ruleVersion).toBe('1.0.0');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/67]⎯
+
+ FAIL  test/detection/rule-loader.test.ts > CP-3: Rule Loader > listApplicableRules > should find rules matching signal type
+AssertionError: expected 0 to be greater than 0
+ ❯ test/detection/rule-loader.test.ts:62:28
+     60|       const rules = loader.listApplicableRules(signal);
+     61| 
+     62|       expect(rules.length).toBeGreaterThan(0);
+       |                            ^
+     63|       expect(rules.some(r => r.ruleId === 'lambda-error-rate')).toBe(t…
+     64|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/67]⎯
+
+ FAIL  test/detection/rule-loader.test.ts > CP-3: Rule Loader > listApplicableRules > should find rules matching severity
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/detection/rule-loader.test.ts:71:68
+     69| 
+     70|       // high-severity-signal rule should match
+     71|       expect(rules.some(r => r.ruleId === 'high-severity-signal')).toB…
+       |                                                                    ^
+     72|     });
+     73| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/67]⎯
+
+ FAIL  test/detection/rule-loader.test.ts > CP-3: Rule Loader > listRuleVersions > should list all versions of a rule
+AssertionError: expected [] to include '1.0.0'
+ ❯ test/detection/rule-loader.test.ts:109:24
+    107|       const versions = loader.listRuleVersions('lambda-error-rate');
+    108| 
+    109|       expect(versions).toContain('1.0.0');
+       |                        ^
+    110|     });
+    111| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/67]⎯
+
+ FAIL  test/detection/rule-loader.test.ts > CP-3: Rule Loader > loadLatestRule (TOOLING ONLY) > should load latest version
+AssertionError: expected null not to be null
+ ❯ test/detection/rule-loader.test.ts:123:24
+    121|       const rule = loader.loadLatestRule('lambda-error-rate');
+    122| 
+    123|       expect(rule).not.toBeNull();
+       |                        ^
+    124|       expect(rule?.ruleId).toBe('lambda-error-rate');
+    125|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/67]⎯
+
+ FAIL  test/detection/rule-loader.test.ts > CP-3: Rule Loader > getAllRules > should return all loaded rules
+AssertionError: expected 0 to be greater than or equal to 5
+ ❯ test/detection/rule-loader.test.ts:138:28
+    136|       const rules = loader.getAllRules();
+    137| 
+    138|       expect(rules.length).toBeGreaterThanOrEqual(5); // We created 5 …
+       |                            ^
+    139|     });
+    140|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/67]⎯
+
+ FAIL  test/evidence/evidence-bundle.integration.test.ts > Evidence Bundle Integration > Build and Store Evidence > should store and retrieve evidence bundle
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/evidence/evidence-bundle.integration.test.ts:86:21
+     84|       // Store bundle
+     85|       const isNew = await evidenceStore.putEvidence(bundle);
+     86|       expect(isNew).toBe(true);
+       |                     ^
+     87|       
+     88|       // Retrieve bundle
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/67]⎯
+
+ FAIL  test/evidence/evidence-bundle.integration.test.ts > Evidence Bundle Integration > Idempotency > should be idempotent when storing same bundle twice
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/evidence/evidence-bundle.integration.test.ts:120:22
+    118|       // Store first time
+    119|       const isNew1 = await evidenceStore.putEvidence(bundle);
+    120|       expect(isNew1).toBe(true);
+       |                      ^
+    121|       
+    122|       // Store second time (idempotent)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/67]⎯
+
+ FAIL  test/incident/incident-manager.test.ts > Phase 3.4: Incident Manager (Canonical) > createIncident > should create incident from promotion result
+TypeError: Cannot read properties of undefined (reading 'uniqueRules')
+ ❯ IncidentManager.buildTitle src/incident/incident-manager.ts:278:46
+    276|    */
+    277|   private buildTitle(evidence: EvidenceBundle, severity: NormalizedSev…
+    278|     const ruleCount = evidence.signalSummary.uniqueRules;
+       |                                              ^
+    279|     const detectionCount = evidence.detections.length;
+    280|     
+ ❯ IncidentManager.createIncident src/incident/incident-manager.ts:84:24
+ ❯ test/incident/incident-manager.test.ts:92:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/67]⎯
+
+ FAIL  test/incident/incident-manager.test.ts > Phase 3.4: Incident Manager (Canonical) > createIncident > should derive severity from evidence (max severity)
+TypeError: Cannot read properties of undefined (reading 'uniqueRules')
+ ❯ IncidentManager.buildTitle src/incident/incident-manager.ts:278:46
+    276|    */
+    277|   private buildTitle(evidence: EvidenceBundle, severity: NormalizedSev…
+    278|     const ruleCount = evidence.signalSummary.uniqueRules;
+       |                                              ^
+    279|     const detectionCount = evidence.detections.length;
+    280|     
+ ❯ IncidentManager.createIncident src/incident/incident-manager.ts:84:24
+ ❯ test/incident/incident-manager.test.ts:154:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/67]⎯
+
+ FAIL  test/incident/incident-schema.test.ts > CP-7: Incident Schema Validation > schema validation > should accept valid incident
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/incident-schema.test.ts:36:30
+     34|       const incident = createValidIncident();
+     35|       const result = IncidentSchema.safeParse(incident);
+     36|       expect(result.success).toBe(true);
+       |                              ^
+     37|     });
+     38| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/67]⎯
+
+ FAIL  test/incident/incident-schema.test.ts > CP-7: Incident Schema Validation > timeline fields > should accept incident with all timeline fields
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/incident-schema.test.ts:110:30
+    108|       });
+    109|       const result = IncidentSchema.safeParse(incident);
+    110|       expect(result.success).toBe(true);
+       |                              ^
+    111|     });
+    112| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/67]⎯
+
+ FAIL  test/incident/incident-schema.test.ts > CP-7: Incident Schema Validation > timeline fields > should accept incident with only createdAt
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/incident-schema.test.ts:118:30
+    116|       });
+    117|       const result = IncidentSchema.safeParse(incident);
+    118|       expect(result.success).toBe(true);
+       |                              ^
+    119|     });
+    120| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/67]⎯
+
+ FAIL  test/incident/incident-schema.test.ts > CP-7: Incident Schema Validation > resolution fields > should accept incident with resolution fields
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/incident-schema.test.ts:136:30
+    134|       });
+    135|       const result = IncidentSchema.safeParse(incident);
+    136|       expect(result.success).toBe(true);
+       |                              ^
+    137|     });
+    138| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/67]⎯
+
+ FAIL  test/incident/incident-schema.test.ts > CP-7: Incident Schema Validation > resolution fields > should accept incident without resolution fields
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/incident-schema.test.ts:142:30
+    140|       const incident = createValidIncident();
+    141|       const result = IncidentSchema.safeParse(incident);
+    142|       expect(result.success).toBe(true);
+       |                              ^
+    143|     });
+    144| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/67]⎯
+
+ FAIL  test/incident/incident-schema.test.ts > CP-7: Incident Schema Validation > resolution metadata schema > should accept valid resolution metadata
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/incident-schema.test.ts:163:30
+    161|       };
+    162|       const result = ResolutionMetadataSchema.safeParse(resolution);
+    163|       expect(result.success).toBe(true);
+       |                              ^
+    164|     });
+    165| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/67]⎯
+
+ FAIL  test/incident/incident-schema.test.ts > CP-7: Incident Schema Validation > resolution metadata schema > should accept all resolution types
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/incident-schema.test.ts:196:32
+    194|         };
+    195|         const result = ResolutionMetadataSchema.safeParse(resolution);
+    196|         expect(result.success).toBe(true);
+       |                                ^
+    197|       }
+    198|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > legal transitions > should allow PENDING → OPEN
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/state-machine.test.ts:24:30
+     22|     it('should allow PENDING → OPEN', () => {
+     23|       const result = stateMachine.validateTransition('PENDING', 'OPEN'…
+     24|       expect(result.allowed).toBe(true);
+       |                              ^
+     25|     });
+     26| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > legal transitions > should allow OPEN → RESOLVED
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/incident/state-machine.test.ts:34:30
+     32|     it('should allow OPEN → RESOLVED', () => {
+     33|       const result = stateMachine.validateTransition('OPEN', 'RESOLVED…
+     34|       expect(result.allowed).toBe(true);
+       |                              ^
+     35|     });
+     36| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > illegal transitions (CORRECTION 1 & 2) > should reject PENDING → CLOSED (CORRECTION 1)
+AssertionError: expected 'No transitions allowed from PENDING. …' to contain 'Illegal transition'
+
+Expected: "Illegal transition"
+Received: "No transitions allowed from PENDING. Legal transitions: none"
+
+ ❯ test/incident/state-machine.test.ts:52:29
+     50|       const result = stateMachine.validateTransition('PENDING', 'CLOSE…
+     51|       expect(result.allowed).toBe(false);
+     52|       expect(result.reason).toContain('Illegal transition');
+       |                             ^
+     53|     });
+     54| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > illegal transitions (CORRECTION 1 & 2) > should reject CLOSED → OPEN (CORRECTION 2)
+AssertionError: expected 'No transitions allowed from CLOSED. L…' to contain 'terminal'
+
+Expected: "terminal"
+Received: "No transitions allowed from CLOSED. Legal transitions: none"
+
+ ❯ test/incident/state-machine.test.ts:93:29
+     91|       const result = stateMachine.validateTransition('CLOSED', 'OPEN');
+     92|       expect(result.allowed).toBe(false);
+     93|       expect(result.reason).toContain('terminal');
+       |                             ^
+     94|     });
+     95| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > illegal transitions (CORRECTION 1 & 2) > should reject CLOSED → any state (terminal)
+AssertionError: expected 'No transitions allowed from CLOSED. L…' to contain 'terminal'
+
+Expected: "terminal"
+Received: "No transitions allowed from CLOSED. Legal transitions: none"
+
+ ❯ test/incident/state-machine.test.ts:102:31
+    100|         const result = stateMachine.validateTransition('CLOSED', state…
+    101|         expect(result.allowed).toBe(false);
+    102|         expect(result.reason).toContain('terminal');
+       |                               ^
+    103|       }
+    104|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > legal next states > should return correct next states for PENDING
+AssertionError: expected [] to deeply equal [ 'OPEN' ]
+
+- Expected
++ Received
+
+- Array [
+-   "OPEN",
+- ]
++ Array []
+
+ ❯ test/incident/state-machine.test.ts:162:26
+    160|     it('should return correct next states for PENDING', () => {
+    161|       const nextStates = stateMachine.getLegalNextStates('PENDING');
+    162|       expect(nextStates).toEqual(['OPEN']);
+       |                          ^
+    163|     });
+    164| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > legal next states > should return correct next states for OPEN
+AssertionError: expected [ 'ACKNOWLEDGED', 'MITIGATING' ] to include 'RESOLVED'
+ ❯ test/incident/state-machine.test.ts:168:26
+    166|       const nextStates = stateMachine.getLegalNextStates('OPEN');
+    167|       expect(nextStates).toContain('MITIGATING');
+    168|       expect(nextStates).toContain('RESOLVED');
+       |                          ^
+    169|       expect(nextStates.length).toBe(2);
+    170|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > fail-closed behavior (INV-7.8) > should provide reason for illegal transition
+AssertionError: expected 'No transitions allowed from PENDING. …' to contain 'Illegal transition'
+
+Expected: "Illegal transition"
+Received: "No transitions allowed from PENDING. Legal transitions: none"
+
+ ❯ test/incident/state-machine.test.ts:193:29
+    191|       expect(result.allowed).toBe(false);
+    192|       expect(result.reason).toBeDefined();
+    193|       expect(result.reason).toContain('Illegal transition');
+       |                             ^
+    194|     });
+    195| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > fail-closed behavior (INV-7.8) > should provide reason for terminal state transition
+AssertionError: expected 'No transitions allowed from CLOSED. L…' to contain 'terminal'
+
+Expected: "terminal"
+Received: "No transitions allowed from CLOSED. Legal transitions: none"
+
+ ❯ test/incident/state-machine.test.ts:200:29
+    198|       expect(result.allowed).toBe(false);
+    199|       expect(result.reason).toBeDefined();
+    200|       expect(result.reason).toContain('terminal');
+       |                             ^
+    201|     });
+    202| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/67]⎯
+
+ FAIL  test/incident/state-machine.test.ts > CP-7: Incident State Machine > fail-closed behavior (INV-7.8) > should list legal transitions in error message
+AssertionError: expected 'No transitions allowed from PENDING. …' to contain 'OPEN'
+
+Expected: "OPEN"
+Received: "No transitions allowed from PENDING. Legal transitions: none"
+
+ ❯ test/incident/state-machine.test.ts:206:29
+    204|       const result = stateMachine.validateTransition('PENDING', 'CLOSE…
+    205|       expect(result.reason).toContain('Legal transitions');
+    206|       expect(result.reason).toContain('OPEN');
+       |                             ^
+    207|     });
+    208|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/67]⎯
+
+ FAIL  test/integration/iam-auth.integration.test.ts > Integration: IAM Authorization > Scenario 10: should allow Creator role to create incidents
+AccessDenied: User: arn:aws:iam::998461587244:user/Dev-Shubh is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/OpxIncidentCreator
+ ❯ ProtocolLib.getErrorSchemaOrThrowBaseException node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:69:67
+ ❯ AwsQueryProtocol.handleError node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:1339:65
+ ❯ AwsQueryProtocol.deserializeResponse node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:1307:24
+ ❯ node_modules/@smithy/core/dist-cjs/submodules/schema/index.js:26:24
+ ❯ node_modules/@smithy/core/dist-cjs/index.js:121:20
+ ❯ node_modules/@smithy/middleware-retry/dist-cjs/index.js:254:46
+ ❯ node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/middleware-logger/dist-cjs/index.js:5:26
+ ❯ Module.assumeRole test/integration/aws-helpers.ts:113:18
+    111|   const sts = new STSClient({ region: REGION });
+    112|   
+    113|   const result = await sts.send(new AssumeRoleCommand({
+       |                  ^
+    114|     RoleArn: roleArn,
+    115|     RoleSessionName: `integration-test-${Date.now()}`,
+ ❯ test/integration/iam-auth.integration.test.ts:16:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/67]⎯
+
+ FAIL  test/integration/iam-auth.integration.test.ts > Integration: IAM Authorization > Scenario 11: should allow Reader role to view incidents
+AccessDenied: User: arn:aws:iam::998461587244:user/Dev-Shubh is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/OpxIncidentReader
+ ❯ ProtocolLib.getErrorSchemaOrThrowBaseException node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:69:67
+ ❯ AwsQueryProtocol.handleError node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:1339:65
+ ❯ AwsQueryProtocol.deserializeResponse node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:1307:24
+ ❯ node_modules/@smithy/core/dist-cjs/submodules/schema/index.js:26:24
+ ❯ node_modules/@smithy/core/dist-cjs/index.js:121:20
+ ❯ node_modules/@smithy/middleware-retry/dist-cjs/index.js:254:46
+ ❯ node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/middleware-logger/dist-cjs/index.js:5:26
+ ❯ Module.assumeRole test/integration/aws-helpers.ts:113:18
+    111|   const sts = new STSClient({ region: REGION });
+    112|   
+    113|   const result = await sts.send(new AssumeRoleCommand({
+       |                  ^
+    114|     RoleArn: roleArn,
+    115|     RoleSessionName: `integration-test-${Date.now()}`,
+ ❯ test/integration/iam-auth.integration.test.ts:48:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/67]⎯
+
+ FAIL  test/integration/iam-auth.integration.test.ts > Integration: IAM Authorization > Scenario 12: should allow Approver role to approve actions
+AccessDenied: User: arn:aws:iam::998461587244:user/Dev-Shubh is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::123456789012:role/OpxIncidentApprover
+ ❯ ProtocolLib.getErrorSchemaOrThrowBaseException node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:69:67
+ ❯ AwsQueryProtocol.handleError node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:1339:65
+ ❯ AwsQueryProtocol.deserializeResponse node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:1307:24
+ ❯ node_modules/@smithy/core/dist-cjs/submodules/schema/index.js:26:24
+ ❯ node_modules/@smithy/core/dist-cjs/index.js:121:20
+ ❯ node_modules/@smithy/middleware-retry/dist-cjs/index.js:254:46
+ ❯ node_modules/@aws-sdk/client-sts/node_modules/@aws-sdk/middleware-logger/dist-cjs/index.js:5:26
+ ❯ Module.assumeRole test/integration/aws-helpers.ts:113:18
+    111|   const sts = new STSClient({ region: REGION });
+    112|   
+    113|   const result = await sts.send(new AssumeRoleCommand({
+       |                  ^
+    114|     RoleArn: roleArn,
+    115|     RoleSessionName: `integration-test-${Date.now()}`,
+ ❯ test/integration/iam-auth.integration.test.ts:89:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/67]⎯
+
+ FAIL  test/integration/idempotency.integration.test.ts > Integration: Idempotency > Scenario 6: should handle idempotent create with client-provided key
+AssertionError: expected 501 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 501
+
+ ❯ test/integration/idempotency.integration.test.ts:27:30
+     25|     );
+     26| 
+     27|     expect(response1.status).toBe(201);
+       |                              ^
+     28|     expect(response1.headers.get('x-idempotency-replayed')).toBe('fals…
+     29|     const incident1: any = await response1.json();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/67]⎯
+
+ FAIL  test/integration/idempotency.integration.test.ts > Integration: Idempotency > Scenario 7: should handle idempotent create with auto-generated key
+AssertionError: expected 501 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 501
+
+ ❯ test/integration/idempotency.integration.test.ts:61:30
+     59|     // First request (no idempotency key provided)
+     60|     const response1 = await makeSignedRequest('POST', '/incidents', re…
+     61|     expect(response1.status).toBe(201);
+       |                              ^
+     62|     const incident1: any = await response1.json();
+     63|     const incidentId = incident1.incidentId;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/67]⎯
+
+ FAIL  test/integration/idempotency.integration.test.ts > Integration: Idempotency > Scenario 8: should reject idempotency key reuse with different request
+AssertionError: expected 501 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 501
+
+ ❯ test/integration/idempotency.integration.test.ts:89:30
+     87|     );
+     88| 
+     89|     expect(response1.status).toBe(201);
+       |                              ^
+     90| 
+     91|     // Second request with same key but different body (should fail)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/67]⎯
+
+ FAIL  test/integration/idempotency.integration.test.ts > Integration: Idempotency > Scenario 9: should handle idempotency under retry storm
+AssertionError: expected [ 200, 201 ] to include 501
+ ❯ test/integration/idempotency.integration.test.ts:143:26
+    141|         console.error(`Request ${index} failed with status ${response.…
+    142|       }
+    143|       expect([200, 201]).toContain(response.status);
+       |                          ^
+    144|     });
+    145| 
+ ❯ test/integration/idempotency.integration.test.ts:139:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/67]⎯
+
+ FAIL  test/integration/lifecycle.integration.test.ts > Integration: Full Incident Lifecycle > Scenario 1: should complete full incident lifecycle
+AssertionError: expected 501 to be 201 // Object.is equality
+
+- Expected
++ Received
+
+- 201
++ 501
+
+ ❯ test/integration/lifecycle.integration.test.ts:23:35
+     21|     }, { 'Idempotency-Key': idempotencyKey });
+     22| 
+     23|     expect(createResponse.status).toBe(201);
+       |                                   ^
+     24|     const incident: any = await createResponse.json();
+     25|     expect(incident.state).toBe('CREATED');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/67]⎯
+
+ FAIL  test/integration/lifecycle.integration.test.ts > Integration: Full Incident Lifecycle > Scenario 2: should reject concurrent transitions deterministically
+AssertionError: expected [ 400, 400 ] to include 200
+ ❯ test/integration/lifecycle.integration.test.ts:138:22
+    136|     // Both are valid outcomes depending on timing
+    137|     const statuses = [response1.status, response2.status].sort();
+    138|     expect(statuses).toContain(200); // One must succeed
+       |                      ^
+    139|     expect(statuses.some(s => s === 409 || s === 400)).toBe(true); // …
+    140| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/67]⎯
+
+ FAIL  test/integration/lifecycle.integration.test.ts > Integration: Full Incident Lifecycle > Scenario 3: should reject invalid transitions (fail-closed)
+AssertionError: expected undefined to be 'INVALID_TRANSITION' // Object.is equality
+
+- Expected: 
+"INVALID_TRANSITION"
+
++ Received: 
+undefined
+
+ ❯ test/integration/lifecycle.integration.test.ts:168:30
+    166|     expect(invalidResponse.status).toBe(400);
+    167|     const error: any = await invalidResponse.json();
+    168|     expect(error.error.code).toBe('INVALID_TRANSITION');
+       |                              ^
+    169| 
+    170|     // Verify state unchanged
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/67]⎯
+
+ FAIL  test/integration/lifecycle.integration.test.ts > Integration: Full Incident Lifecycle > Scenario 4: should replay after multiple transitions
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/integration/lifecycle.integration.test.ts:204:35
+    202|     // Replay
+    203|     const replayResponse = await makeSignedRequest('GET', `/incidents/…
+    204|     expect(replayResponse.status).toBe(200);
+       |                                   ^
+    205|     const replayResult: any = await replayResponse.json();
+    206|     
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/67]⎯
+
+ FAIL  test/integration/lifecycle.integration.test.ts > Integration: Full Incident Lifecycle > Scenario 5: should replay after rejected transition
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/integration/lifecycle.integration.test.ts:246:35
+    244|     // Replay
+    245|     const replayResponse = await makeSignedRequest('GET', `/incidents/…
+    246|     expect(replayResponse.status).toBe(200);
+       |                                   ^
+    247|     const replayResult: any = await replayResponse.json();
+    248|     
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/67]⎯
+
+ FAIL  test/integration/lifecycle.integration.test.ts > Integration: Full Incident Lifecycle > Scenario 15: should enforce terminal state (CLOSED)
+AssertionError: expected undefined to be 'INVALID_TRANSITION' // Object.is equality
+
+- Expected: 
+"INVALID_TRANSITION"
+
++ Received: 
+undefined
+
+ ❯ test/integration/lifecycle.integration.test.ts:292:30
+    290|     expect(invalidResponse.status).toBe(400);
+    291|     const error: any = await invalidResponse.json();
+    292|     expect(error.error.code).toBe('INVALID_TRANSITION');
+       |                              ^
+    293|   }, 30000);
+    294| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/67]⎯
+
+ FAIL  test/integration/replay.integration.test.ts > Integration: Replay Integrity > Scenario 13: should detect replay integrity violation (hash mismatch) - returns 409
+ValidationException: The provided key element does not match the schema
+ ❯ ProtocolLib.getErrorSchemaOrThrowBaseException node_modules/@aws-sdk/client-dynamodb/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:69:67
+ ❯ AwsJson1_0Protocol.handleError node_modules/@aws-sdk/client-dynamodb/node_modules/@aws-sdk/core/dist-cjs/submodules/protocols/index.js:774:65
+ ❯ AwsJson1_0Protocol.deserializeResponse node_modules/@smithy/core/dist-cjs/submodules/protocols/index.js:481:24
+ ❯ node_modules/@smithy/core/dist-cjs/submodules/schema/index.js:26:24
+ ❯ node_modules/@smithy/core/dist-cjs/index.js:121:20
+ ❯ node_modules/@smithy/middleware-retry/dist-cjs/index.js:254:46
+ ❯ node_modules/@aws-sdk/client-dynamodb/node_modules/@aws-sdk/middleware-logger/dist-cjs/index.js:5:26
+ ❯ test/integration/replay.integration.test.ts:34:7
+     32|     // Corrupt event store by modifying a hash
+     33|     try {
+     34|       await dynamodb.send(new UpdateItemCommand({
+       |       ^
+     35|         TableName: EVENTS_TABLE_NAME,
+     36|         Key: marshall({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/67]⎯
+
+ FAIL  test/integration/replay.integration.test.ts > Integration: Replay Integrity > Scenario 14: should detect event store gap - returns 409
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/integration/replay.integration.test.ts:83:35
+     81|     // For now, skip the corruption test and just verify replay works
+     82|     const replayResponse = await makeSignedRequest('GET', `/incidents/…
+     83|     expect(replayResponse.status).toBe(200);
+       |                                   ^
+     84|     
+     85|     const replayResult: any = await replayResponse.json();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/67]⎯
+
+ FAIL  test/integration/replay.integration.test.ts > Integration: Replay Integrity > Scenario 16: should handle clock skew tolerance
+AssertionError: expected 404 to be 200 // Object.is equality
+
+- Expected
++ Received
+
+- 200
++ 404
+
+ ❯ test/integration/replay.integration.test.ts:112:35
+    110|     // Replay should succeed despite potential clock skew
+    111|     const replayResponse = await makeSignedRequest('GET', `/incidents/…
+    112|     expect(replayResponse.status).toBe(200);
+       |                                   ^
+    113|     
+    114|     const replayResult: any = await replayResponse.json();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/67]⎯
+
+ FAIL  test/orchestration/candidate-event-handler.test.ts > CandidateEventHandler > Schema Validation > throws on invalid eventType
+ReferenceError: mockOrchestrator is not defined
+ ❯ test/orchestration/candidate-event-handler.test.ts:206:14
+    204|       ).rejects.toThrow('Invalid CandidateCreated event');
+    205| 
+    206|       expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+       |              ^
+    207|     });
+    208| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/67]⎯
+
+ FAIL  test/orchestration/candidate-event-handler.test.ts > CandidateEventHandler > Schema Validation > throws on invalid candidateId format
+ReferenceError: mockOrchestrator is not defined
+ ❯ test/orchestration/candidate-event-handler.test.ts:218:14
+    216|       ).rejects.toThrow('Invalid CandidateCreated event');
+    217| 
+    218|       expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+       |              ^
+    219|     });
+    220| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/67]⎯
+
+ FAIL  test/orchestration/candidate-event-handler.test.ts > CandidateEventHandler > Schema Validation > throws on missing required field
+ReferenceError: mockOrchestrator is not defined
+ ❯ test/orchestration/candidate-event-handler.test.ts:230:14
+    228|       ).rejects.toThrow('Invalid CandidateCreated event');
+    229| 
+    230|       expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+       |              ^
+    231|     });
+    232|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/67]⎯
+
+ FAIL  test/orchestration/candidate-event-handler.test.ts > CandidateEventHandler > Authority Context > builds AUTO_ENGINE authority correctly
+ReferenceError: mockOrchestrator is not defined
+ ❯ test/orchestration/candidate-event-handler.test.ts:240:17
+    238|       });
+    239| 
+    240|       vi.mocked(mockOrchestrator.processCandidate).mockResolvedValue({
+       |                 ^
+    241|         success: true,
+    242|         decision: 'PROMOTE',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/67]⎯
+
+ FAIL  test/orchestration/candidate-event-handler.test.ts > CandidateEventHandler > Error Propagation > propagates orchestrator errors
+ReferenceError: mockOrchestrator is not defined
+ ❯ test/orchestration/candidate-event-handler.test.ts:267:17
+    265|       const event = createMockEventBridgeEvent({});
+    266| 
+    267|       vi.mocked(mockOrchestrator.processCandidate).mockRejectedValue(
+       |                 ^
+    268|         new Error('Candidate not found')
+    269|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/67]⎯
+
+ FAIL  test/orchestration/candidate-event-handler.test.ts > CandidateEventHandler > Error Propagation > propagates validation errors
+ReferenceError: mockOrchestrator is not defined
+ ❯ test/orchestration/candidate-event-handler.test.ts:285:14
+    283|       ).rejects.toThrow('Invalid CandidateCreated event');
+    284| 
+    285|       expect(mockOrchestrator.processCandidate).not.toHaveBeenCalled();
+       |              ^
+    286|     });
+    287|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/67]⎯
+
+ FAIL  test/orchestration/candidate-to-incident.integration.test.ts > Integration: Candidate → Incident Pipeline > Category 2: Idempotency > Test 2.2: Duplicate CandidateCreated events → same result
+Error: Handler not initialized - call initializeHandler() first
+ ❯ Module.handleCandidateCreated src/orchestration/candidate-event-handler.ts:106:11
+    104| ): Promise<void> {
+    105|   if (!promotionGate || !candidateStore || !promotionStore || !inciden…
+    106|     throw new Error('Handler not initialized - call initializeHandler(…
+       |           ^
+    107|   }
+    108| 
+ ❯ test/orchestration/candidate-to-incident.integration.test.ts:337:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/67]⎯
+
+ FAIL  test/orchestration/candidate-to-incident.integration.test.ts > Integration: Candidate → Incident Pipeline > Category 3: Authority Preservation > Test 3.1: AUTO_ENGINE authority flows through
+Error: Handler not initialized - call initializeHandler() first
+ ❯ Module.handleCandidateCreated src/orchestration/candidate-event-handler.ts:106:11
+    104| ): Promise<void> {
+    105|   if (!promotionGate || !candidateStore || !promotionStore || !inciden…
+    106|     throw new Error('Handler not initialized - call initializeHandler(…
+       |           ^
+    107|   }
+    108| 
+ ❯ test/orchestration/candidate-to-incident.integration.test.ts:408:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > successful promotion > should PROMOTE eligible candidate
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:108:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > successful promotion > should store decision
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:128:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > successful promotion > should emit audit
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:144:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > gate validation > should REJECT invalid request
+AssertionError: expected [Function] to throw error including 'Gate validation failed' but got 'this.gate.validateRequest is not a fu…'
+
+Expected: "Gate validation failed"
+Received: "this.gate.validateRequest is not a function"
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > candidate not found > should REJECT when candidate not found
+AssertionError: expected [Function] to throw error including 'Candidate not found' but got 'this.gate.validateRequest is not a fu…'
+
+Expected: "Candidate not found"
+Received: "this.gate.validateRequest is not a function"
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > policy not found > should REJECT when policy not found
+AssertionError: expected [Function] to throw error including 'Policy not found' but got 'this.gate.validateRequest is not a fu…'
+
+Expected: "Policy not found"
+Received: "this.gate.validateRequest is not a function"
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > 🔒 INV-6.6: Audit failure must not block decision > should persist decision even when audit fails
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:200:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > 🔒 CORRECTION 1: decisionId excludes authorityId > should produce same decisionId for different authorities
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:230:38
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > 🔒 INV-6.4: Deterministic outcome > should produce same decision for same inputs
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:257:38
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > 🔒 INV-6.4: Deterministic outcome > should use injected currentTime for decidedAt
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:277:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/67]⎯
+
+ FAIL  test/promotion/promotion-engine.test.ts > CP-6: Promotion Engine > idempotency > should return existing decision if already stored
+TypeError: this.gate.validateRequest is not a function
+ ❯ PromotionEngine.processPromotionRequest src/promotion/promotion-engine.ts:85:34
+     83|   ): Promise<PromotionDecision> {
+     84|     // Step 1: Gate validation (pure, structural only)
+     85|     const gateResult = this.gate.validateRequest(request);
+       |                                  ^
+     86|     if (!gateResult.allowed) {
+     87|       throw new Error(`Gate validation failed: ${gateResult.reason}`);
+ ❯ test/promotion/promotion-engine.test.ts:295:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/67]⎯
+
+ FAIL  test/promotion/promotion-schema.test.ts > CP-6: Promotion Schemas > PromotionDecision > should accept valid decision
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/promotion/promotion-schema.test.ts:123:30
+    121|     it('should accept valid decision', () => {
+    122|       const result = PromotionDecisionSchema.safeParse(validDecision);
+    123|       expect(result.success).toBe(true);
+       |                              ^
+    124|     });
+    125| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/67]⎯
+
+ FAIL  test/promotion/promotion-schema.test.ts > CP-6: Promotion Schemas > PromotionDecision > should accept optional justification
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/promotion/promotion-schema.test.ts:141:30
+    139|       const decision = { ...validDecision, justification: 'Emergency o…
+    140|       const result = PromotionDecisionSchema.safeParse(decision);
+    141|       expect(result.success).toBe(true);
+       |                              ^
+    142|     });
+    143| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/67]⎯
+
+ FAIL  test/promotion/promotion-schema.test.ts > CP-6: Promotion Schemas > PromotionDecision > should accept optional sessionId
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/promotion/promotion-schema.test.ts:147:30
+    145|       const decision = { ...validDecision, sessionId: 'session-123' };
+    146|       const result = PromotionDecisionSchema.safeParse(decision);
+    147|       expect(result.success).toBe(true);
+       |                              ^
+    148|     });
+    149|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/67]⎯
+
+ FAIL  test/promotion/promotion-schema.test.ts > CP-6: Promotion Schemas > PromotionAuditRecord > should accept valid audit record
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/promotion/promotion-schema.test.ts:171:30
+    169|     it('should accept valid audit record', () => {
+    170|       const result = PromotionAuditRecordSchema.safeParse(validAuditRe…
+    171|       expect(result.success).toBe(true);
+       |                              ^
+    172|     });
+    173| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[67/67]⎯
+
+ Test Files  14 failed | 84 passed | 1 skipped (99)
+      Tests  67 failed | 1375 passed | 13 skipped (1455)
+   Start at  08:49:20
+   Duration  14.72s (transform 3.58s, setup 0ms, collect 14.09s, tests 43.98s, environment 30ms, prepare 11.35s)
+

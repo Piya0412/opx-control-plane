@@ -58,64 +58,134 @@ function createMockContext(): Context {
 }
 
 describe('CandidateEventHandler', () => {
-  let mockOrchestrator: IncidentOrchestrator;
+  let mockPromotionGate: any;
+  let mockCandidateStore: any;
+  let mockPromotionStore: any;
+  let mockIncidentManager: any;
+  let mockEvidenceStore: any;
 
   beforeEach(() => {
-    mockOrchestrator = {
-      processCandidate: vi.fn(),
-    } as any;
+    mockPromotionGate = {
+      evaluate: vi.fn(),
+    };
+    
+    mockCandidateStore = {
+      get: vi.fn(),
+    };
+    
+    mockPromotionStore = {
+      recordDecision: vi.fn(),
+    };
+    
+    mockIncidentManager = {
+      createIncident: vi.fn(),
+    };
+    
+    mockEvidenceStore = {
+      getEvidence: vi.fn(),
+    };
 
-    initializeHandler({ orchestrator: mockOrchestrator });
+    initializeHandler({
+      promotionGate: mockPromotionGate,
+      candidateStore: mockCandidateStore,
+      promotionStore: mockPromotionStore,
+      incidentManager: mockIncidentManager,
+      evidenceStore: mockEvidenceStore,
+    });
   });
 
   describe('Happy Path', () => {
     it('processes valid CandidateCreated event', async () => {
       const event = createMockEventBridgeEvent({});
 
-      vi.mocked(mockOrchestrator.processCandidate).mockResolvedValue({
-        success: true,
+      const mockCandidate = {
+        candidateId: 'a'.repeat(64),
+        evidenceGraphIds: ['e'.repeat(64)],
+        confidence: 'HIGH',
+        confidenceFactors: [],
+        createdAt: '2026-01-19T00:00:00Z',
+      };
+
+      const mockEvidence = {
+        evidenceId: 'e'.repeat(64),
+        bundledAt: '2026-01-19T00:00:00Z',
+      };
+
+      const mockPromotionResult = {
         decision: 'PROMOTE',
         incidentId: 'f'.repeat(64),
-        decisionId: 'c'.repeat(64),
-        reason: 'Policy evaluation: PROMOTE',
-      });
+        candidateId: 'a'.repeat(64),
+        evidenceId: 'e'.repeat(64),
+        confidenceScore: 0.8,
+        confidenceBand: 'HIGH',
+        evidenceWindow: {
+          start: '2026-01-19T00:00:00Z',
+          end: '2026-01-19T00:30:00Z',
+        },
+        evaluatedAt: '2026-01-19T00:00:00Z',
+        gateVersion: 'v1.0.0',
+      };
+
+      const mockIncident = {
+        incidentId: 'f'.repeat(64),
+        state: 'OPEN',
+        severity: 'SEV2',
+      };
+
+      vi.mocked(mockCandidateStore.get).mockResolvedValue(mockCandidate);
+      vi.mocked(mockEvidenceStore.getEvidence).mockResolvedValue(mockEvidence);
+      vi.mocked(mockPromotionGate.evaluate).mockResolvedValue(mockPromotionResult);
+      vi.mocked(mockIncidentManager.createIncident).mockResolvedValue(mockIncident);
+      vi.mocked(mockPromotionStore.recordDecision).mockResolvedValue(undefined);
 
       await expect(
         handleCandidateCreated(event, createMockContext())
       ).resolves.toBeUndefined();
 
-      expect(mockOrchestrator.processCandidate).toHaveBeenCalledWith(
-        'a'.repeat(64),
-        {
-          authorityType: 'AUTO_ENGINE',
-          authorityId: 'opx-candidate-processor',
-          sessionId: 'a'.repeat(64),
-          justification: 'Auto-promotion from correlation',
-        },
-        expect.any(String)
-      );
+      expect(mockPromotionGate.evaluate).toHaveBeenCalled();
+      expect(mockIncidentManager.createIncident).toHaveBeenCalled();
     });
 
     it('logs result correctly', async () => {
       const event = createMockEventBridgeEvent({});
 
-      vi.mocked(mockOrchestrator.processCandidate).mockResolvedValue({
-        success: true,
-        decision: 'DEFER',
-        decisionId: 'c'.repeat(64),
-        reason: 'Active incident exists',
-      });
+      const mockCandidate = {
+        candidateId: 'a'.repeat(64),
+        evidenceGraphIds: ['e'.repeat(64)],
+        confidence: 'LOW',
+        confidenceFactors: [],
+        createdAt: '2026-01-19T00:00:00Z',
+      };
+
+      const mockPromotionResult = {
+        decision: 'REJECT',
+        candidateId: 'a'.repeat(64),
+        evidenceId: 'e'.repeat(64),
+        confidenceScore: 0.3,
+        confidenceBand: 'LOW',
+        rejectionReason: 'Confidence too low',
+        rejectionCode: 'CONFIDENCE_TOO_LOW',
+        evidenceWindow: {
+          start: '2026-01-19T00:00:00Z',
+          end: '2026-01-19T00:30:00Z',
+        },
+        evaluatedAt: '2026-01-19T00:00:00Z',
+        gateVersion: 'v1.0.0',
+      };
+
+      vi.mocked(mockCandidateStore.get).mockResolvedValue(mockCandidate);
+      vi.mocked(mockPromotionGate.evaluate).mockResolvedValue(mockPromotionResult);
+      vi.mocked(mockPromotionStore.recordDecision).mockResolvedValue(undefined);
 
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await handleCandidateCreated(event, createMockContext());
 
       expect(logSpy).toHaveBeenCalledWith(
-        'Candidate processed',
+        'Candidate rejected',
         expect.objectContaining({
           candidateId: 'a'.repeat(64),
-          decision: 'DEFER',
-          requestId: 'request-123',
+          rejectionReason: 'Confidence too low',
         })
       );
 

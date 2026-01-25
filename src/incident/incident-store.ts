@@ -21,7 +21,7 @@ import {
   ConditionalCheckFailedException,
 } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-import { Incident, IncidentState, NormalizedSeverity } from './incident.schema';
+import { Incident, IncidentStatus, NormalizedSeverity } from './incident.schema';
 
 export interface IncidentStoreConfig {
   tableName: string;
@@ -30,7 +30,7 @@ export interface IncidentStoreConfig {
 
 export interface IncidentFilters {
   service?: string;
-  state?: IncidentState;
+  state?: IncidentStatus;
   severity?: NormalizedSeverity;
   minConfidence?: number;
 }
@@ -57,7 +57,7 @@ export class IncidentStore {
           Item: marshall({
             pk: `INCIDENT#${incident.incidentId}`,
             sk: 'v1',
-            state: incident.state,
+            state: incident.status,
             openedAt: incident.openedAt,
             service: incident.service,
             ...incident,
@@ -111,7 +111,7 @@ export class IncidentStore {
         Item: marshall({
           pk: `INCIDENT#${incident.incidentId}`,
           sk: 'v1',
-          state: incident.state,
+          state: incident.status,
           openedAt: incident.openedAt,
           service: incident.service,
           ...incident,
@@ -125,8 +125,8 @@ export class IncidentStore {
    */
   async listIncidents(filters?: IncidentFilters): Promise<Incident[]> {
     // If state filter provided, use StateIndex
-    if (filters?.state) {
-      return this.listIncidentsByState(filters.state);
+    if (filters?.status) {
+      return this.listIncidentsByState(filters.status);
     }
 
     // If service filter provided, use ServiceIndex
@@ -141,7 +141,7 @@ export class IncidentStore {
   /**
    * List incidents by state
    */
-  private async listIncidentsByState(state: IncidentState): Promise<Incident[]> {
+  private async listIncidentsByState(state: IncidentStatus): Promise<Incident[]> {
     const result = await this.client.send(
       new QueryCommand({
         TableName: this.tableName,
@@ -199,7 +199,7 @@ export class IncidentStore {
    * List active incidents (OPEN, ACKNOWLEDGED, MITIGATING)
    */
   async listActiveIncidents(service?: string): Promise<Incident[]> {
-    const activeStates: IncidentState[] = ['OPEN', 'ACKNOWLEDGED', 'MITIGATING'];
+    const activeStates: IncidentStatus[] = ['OPEN', 'ACKNOWLEDGED', 'MITIGATING'];
     const incidents: Incident[] = [];
 
     for (const state of activeStates) {
@@ -207,9 +207,9 @@ export class IncidentStore {
       
       // Filter by service if provided
       if (service) {
-        incidents.push(...stateIncidents.filter((i) => i.service === service));
+        incidents.push(...statusIncidents.filter((i) => i.service === service));
       } else {
-        incidents.push(...stateIncidents);
+        incidents.push(...statusIncidents);
       }
     }
 

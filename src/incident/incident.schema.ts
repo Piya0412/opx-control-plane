@@ -8,41 +8,58 @@
  * - Creation timestamps: DERIVED from promotionResult.evaluatedAt (not Date.now())
  * - Human transition timestamps: Real-time allowed
  * - Severity: DERIVED from evidence (max severity)
+ * 
+ * 🔒 SCHEMA AUTHORITY: This file is the single source of truth
+ * 🔒 CORRECTION 1: PENDING → CLOSED removed (no silent drops)
+ * 🔒 CORRECTION 2: CLOSED is terminal (no reopen)
+ * 🔒 CORRECTION 3: Simplified state machine (removed ACKNOWLEDGED)
+ * 🔒 CORRECTION 4: Resolution metadata required for RESOLVED state
  */
 
 import { z } from 'zod';
 
 /**
- * Incident State Machine
+ * Incident Status (State Machine)
  * 
  * States:
- *   OPEN          → Initial state after promotion
- *   ACKNOWLEDGED  → Human has seen it
+ *   PENDING       → Created, awaiting acknowledgment
+ *   OPEN          → Acknowledged, being investigated
  *   MITIGATING    → Actively working on fix
  *   RESOLVED      → Issue fixed, monitoring
  *   CLOSED        → Incident complete (terminal)
  * 
  * Valid Transitions:
- *   OPEN → ACKNOWLEDGED
+ *   PENDING → OPEN
  *   OPEN → MITIGATING
- *   ACKNOWLEDGED → MITIGATING
+ *   OPEN → RESOLVED
  *   MITIGATING → RESOLVED
  *   RESOLVED → CLOSED
  * 
  * Forbidden:
- *   OPEN → RESOLVED (must mitigate first for high severity)
- *   RESOLVED → OPEN (no reopening)
- *   CLOSED → * (terminal state)
+ *   PENDING → CLOSED (CORRECTION 1: no silent drops)
+ *   CLOSED → * (CORRECTION 2: terminal state, no reopen)
  */
-export const IncidentStateSchema = z.enum([
+export const IncidentStatusSchema = z.enum([
+  'PENDING',
   'OPEN',
-  'ACKNOWLEDGED',
   'MITIGATING',
   'RESOLVED',
   'CLOSED',
 ]);
 
-export type IncidentState = z.infer<typeof IncidentStateSchema>;
+export type IncidentStatus = z.infer<typeof IncidentStatusSchema>;
+
+/**
+ * Severity Levels
+ */
+export const SeveritySchema = z.enum([
+  'SEV1',
+  'SEV2',
+  'SEV3',
+  'SEV4',
+]);
+
+export type Severity = z.infer<typeof SeveritySchema>;
 
 /**
  * Authority Levels
@@ -62,19 +79,6 @@ export const AuthoritySchema = z.object({
 export type Authority = z.infer<typeof AuthoritySchema>;
 
 /**
- * Normalized Severity (from Phase 3.1)
- */
-export const NormalizedSeveritySchema = z.enum([
-  'CRITICAL',
-  'HIGH',
-  'MEDIUM',
-  'LOW',
-  'INFO',
-]);
-
-export type NormalizedSeverity = z.infer<typeof NormalizedSeveritySchema>;
-
-/**
  * Incident Entity
  * 
  * The authoritative incident record.
@@ -82,54 +86,53 @@ export type NormalizedSeverity = z.infer<typeof NormalizedSeveritySchema>;
  * CRITICAL TIMESTAMP RULES:
  * - createdAt: DERIVED from promotionResult.evaluatedAt (not Date.now())
  * - lastModifiedAt (on creation): DERIVED from promotionResult.evaluatedAt
- * - openedAt, acknowledgedAt, mitigatedAt, resolvedAt, closedAt: Real-time (human transitions)
+ * - openedAt, mitigatedAt, resolvedAt, closedAt: Real-time (human transitions)
  * - lastModifiedAt (on transitions): Real-time (transition timestamp)
- * 
- * CORRECTION 3: Simplified state machine (removed ACKNOWLEDGED)
- * CORRECTION 4: Resolution metadata required for RESOLVED state
  */
 export const IncidentSchema = z.object({
   // Identity (deterministic from Phase 3.3)
   incidentId: z.string().length(64), // SHA256 hex
+  decisionId: z.string().length(64),
+  candidateId: z.string().length(64),
   
   // Context
+  severity: SeveritySchema,
   service: z.string().min(1),
-  severity: NormalizedSeveritySchema, // DERIVED from evidence
-  classification: z.string().min(1).optional(), // From candidate (optional)
+  title: z.string().min(1),
   
-  // State
-  state: IncidentStateSchema,
-  
-  // Evidence
-  evidenceId: z.string().length(64),
-  candidateId: z.string().length(64),
-  decisionId: z.string().length(64).optional(), // Optional for backward compatibility
-  confidenceScore: z.number().min(0).max(1),
+  // State (CORRECTED: status not state)
+  status: IncidentStatusSchema,
   
   // Lifecycle Timestamps (ISO-8601)
-  // CRITICAL: createdAt is DERIVED (not real-time)
   createdAt: z.string().datetime(),
   openedAt: z.string().datetime().optional(),
-  mitigatedAt: z.string().datetime().optional(),
+  mitigatingAt: z.string().datetime().optional(),
   resolvedAt: z.string().datetime().optional(),
   closedAt: z.string().datetime().optional(),
   
-  // Resolution (CORRECTION 4: Required for RESOLVED state)
-  resolution: z.object({
-    summary: z.string().min(1),
-    resolutionType: z.enum(['MITIGATED', 'FALSE_POSITIVE', 'DUPLICATE', 'WONT_FIX']),
-    resolvedBy: z.string().min(1),
-  }).optional(),
+  // Counts
+  detectionCount: z.number().int().min(0),
+  evidenceGraphCount: z.number().int().min(0),
+  
+  // Blast Radius
+  blastRadiusScope: z.enum(['SINGLE_SERVICE', 'MULTI_SERVICE', 'INFRASTRUCTURE']),
+  
+  // Version
+  incidentVersion: z.number().int().min(1),
+  
+  // Resolution (CORRECTED: flat fields, not nested)
+  resolutionSummary: z.string().min(1).optional(),
+  resolutionType: z.enum(['FIXED', 'FALSE_POSITIVE', 'DUPLICATE', 'WONT_FIX']).optional(),
+  resolvedBy: z.string().min(1).optional(),
   
   // Metadata
-  title: z.string().min(1),
-  description: z.string(),
+  description: z.string().default(''),
   tags: z.array(z.string()).default([]),
   
-  // Audit
-  createdBy: AuthoritySchema,
-  lastModifiedAt: z.string().datetime(),
-  lastModifiedBy: AuthoritySchema,
+  // Audit (CORRECTED: optional)
+  createdBy: AuthoritySchema.optional(),
+  lastModifiedAt: z.string().datetime().optional(),
+  lastModifiedBy: AuthoritySchema.optional(),
 });
 
 export type Incident = z.infer<typeof IncidentSchema>;
@@ -140,8 +143,8 @@ export type Incident = z.infer<typeof IncidentSchema>;
  * Required when transitioning to RESOLVED state.
  */
 export const ResolutionMetadataSchema = z.object({
-  summary: z.string().min(1),
-  resolutionType: z.enum(['MITIGATED', 'FALSE_POSITIVE', 'DUPLICATE', 'WONT_FIX']),
+  resolutionSummary: z.string().min(1),
+  resolutionType: z.enum(['FIXED', 'FALSE_POSITIVE', 'DUPLICATE', 'WONT_FIX']),
   resolvedBy: z.string().min(1),
 });
 
@@ -175,31 +178,36 @@ export interface TransitionValidation {
  * State Transition Rules
  * 
  * Defines valid transitions and their requirements.
+ * 
+ * 🔒 CORRECTION 1: PENDING → CLOSED removed
+ * 🔒 CORRECTION 2: CLOSED is terminal
+ * 🔒 CORRECTION 3: ACKNOWLEDGED removed
  */
 export const STATE_TRANSITION_RULES: Record<
-  IncidentState,
-  Partial<Record<IncidentState, {
+  IncidentStatus,
+  Partial<Record<IncidentStatus, {
     minAuthority: Authority['type'];
     requiredMetadata?: string[];
   }>>
 > = {
-  OPEN: {
-    ACKNOWLEDGED: {
-      minAuthority: 'HUMAN_OPERATOR',
-    },
-    MITIGATING: {
+  PENDING: {
+    OPEN: {
       minAuthority: 'HUMAN_OPERATOR',
     },
   },
-  ACKNOWLEDGED: {
+  OPEN: {
     MITIGATING: {
       minAuthority: 'HUMAN_OPERATOR',
+    },
+    RESOLVED: {
+      minAuthority: 'ON_CALL_SRE',
+      requiredMetadata: ['reason'],
     },
   },
   MITIGATING: {
     RESOLVED: {
-      minAuthority: 'ON_CALL_SRE', // Higher authority for resolution
-      requiredMetadata: ['reason'], // Must explain resolution
+      minAuthority: 'ON_CALL_SRE',
+      requiredMetadata: ['reason'],
     },
   },
   RESOLVED: {

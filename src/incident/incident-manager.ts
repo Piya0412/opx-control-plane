@@ -15,10 +15,10 @@ import { IncidentStateMachine } from './state-machine';
 import {
   Incident,
   IncidentSchema,
-  IncidentState,
+  IncidentStatus,
   Authority,
   TransitionMetadata,
-  NormalizedSeverity,
+  Severity,
 } from './incident.schema';
 import { PromotionResult } from '../promotion/promotion.schema';
 import { EvidenceBundle } from '../evidence/evidence-bundle.schema';
@@ -26,8 +26,8 @@ import { computeIncidentId } from '../promotion/incident-identity';
 
 export interface IncidentFilters {
   service?: string;
-  state?: IncidentState;
-  severity?: NormalizedSeverity;
+  status?: IncidentStatus;
+  severity?: Severity;
   minConfidence?: number;
 }
 
@@ -90,12 +90,16 @@ export class IncidentManager {
       incidentId: promotionResult.incidentId,
       service: evidence.service,
       severity,
-      state: 'OPEN',
+      status: 'OPEN',
       evidenceId: evidence.evidenceId,
       candidateId,
       decisionId: promotionResult.incidentId, // Use incidentId as decisionId for now
       confidenceScore: promotionResult.confidenceScore,
-      createdAt: promotionResult.evaluatedAt, // DERIVED (not Date.now())
+      createdAt: promotionResult.evaluatedAt,
+      detectionCount: evidence.detections.length,
+      evidenceGraphCount: 1, // Single evidence bundle
+      blastRadiusScope: 'SINGLE_SERVICE', // Default, can be enhanced later
+      incidentVersion: 1, // DERIVED (not Date.now())
       openedAt: promotionResult.evaluatedAt, // DERIVED (not Date.now())
       title,
       description,
@@ -133,7 +137,7 @@ export class IncidentManager {
    */
   async transitionIncident(
     incidentId: string,
-    targetState: IncidentState,
+    targetState: IncidentStatus,
     authority: Authority,
     metadata?: TransitionMetadata
   ): Promise<Incident> {
@@ -260,21 +264,23 @@ export class IncidentManager {
    * - Severity must be deterministic
    * - No re-evaluation, no dynamic computation
    */
-  private deriveSeverity(evidence: EvidenceBundle): NormalizedSeverity {
+  private deriveSeverity(evidence: EvidenceBundle): Severity {
     const severities = evidence.detections.map((d) => d.severity);
     
     // Severity hierarchy (highest to lowest)
-    if (severities.includes('CRITICAL')) return 'CRITICAL';
-    if (severities.includes('HIGH')) return 'HIGH';
-    if (severities.includes('MEDIUM')) return 'MEDIUM';
-    if (severities.includes('LOW')) return 'LOW';
-    return 'INFO';
+    // Map detection severities to incident severities
+    // Detection: CRITICAL/HIGH/MEDIUM/LOW/INFO
+    // Incident: SEV1/SEV2/SEV3/SEV4
+    if (severities.includes('CRITICAL')) return 'SEV1';
+    if (severities.includes('HIGH')) return 'SEV2';
+    if (severities.includes('MEDIUM')) return 'SEV3';
+    return 'SEV4'; // LOW or INFO maps to SEV4
   }
 
   /**
    * Build incident title
    */
-  private buildTitle(evidence: EvidenceBundle, severity: NormalizedSeverity): string {
+  private buildTitle(evidence: EvidenceBundle, severity: Severity): string {
     const ruleCount = evidence.signalSummary.uniqueRules;
     const detectionCount = evidence.detections.length;
     

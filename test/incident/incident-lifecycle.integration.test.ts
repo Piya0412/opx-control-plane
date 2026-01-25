@@ -86,7 +86,7 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       // Assert
       expect(incident).toBeDefined();
       expect(incident.incidentId).toBe(promotionResult.incidentId);
-      expect(incident.state).toBe('OPEN');
+      expect(incident.status).toBe('OPEN');
       expect(incident.service).toBe('order-service');
       expect(incident.severity).toBe('CRITICAL'); // Max severity from detections
       expect(incident.evidenceId).toBe(evidence.evidenceId);
@@ -158,7 +158,7 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       // Assert - Same incident returned
       expect(incident1.incidentId).toBe(incident2.incidentId);
       expect(incident1.openedAt).toBe(incident2.openedAt);
-      expect(incident1.state).toBe(incident2.state);
+      expect(incident1.status).toBe(incident2.status);
     });
 
     it('should derive severity from evidence (max severity)', async () => {
@@ -280,23 +280,26 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       );
     });
 
-    it('should transition OPEN → ACKNOWLEDGED', async () => {
+    it('should transition PENDING → OPEN', async () => {
       // Arrange
       const authority: Authority = {
         type: 'HUMAN_OPERATOR',
         principal: 'arn:aws:iam::123456789012:user/operator',
       };
 
+      // Create incident in PENDING state
+      const pendingIncident = { ...testIncident, status: 'PENDING' as IncidentStatus };
+
       // Act
       const updated = await incidentManager.transitionIncident(
-        testIncident.incidentId,
-        'ACKNOWLEDGED',
+        pendingIncident.incidentId,
+        'OPEN',
         authority
       );
 
       // Assert
-      expect(updated.state).toBe('ACKNOWLEDGED');
-      expect(updated.acknowledgedAt).toBeDefined();
+      expect(updated.status).toBe('OPEN');
+      expect(updated.openedAt).toBeDefined();
       expect(updated.lastModifiedBy).toEqual(authority);
       expect(updated.lastModifiedAt).not.toBe(testIncident.lastModifiedAt);
     });
@@ -316,35 +319,34 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       );
 
       // Assert
-      expect(updated.state).toBe('MITIGATING');
-      expect(updated.mitigatedAt).toBeDefined();
+      expect(updated.status).toBe('MITIGATING');
+      expect(updated.mitigatingAt).toBeDefined();
     });
 
-    it('should transition ACKNOWLEDGED → MITIGATING', async () => {
+    it('should transition OPEN → RESOLVED (direct path)', async () => {
       // Arrange
       const authority: Authority = {
-        type: 'HUMAN_OPERATOR',
-        principal: 'arn:aws:iam::123456789012:user/operator',
+        type: 'ON_CALL_SRE',
+        principal: 'arn:aws:iam::123456789012:user/sre',
       };
 
-      // First transition to ACKNOWLEDGED
-      await incidentManager.transitionIncident(
-        testIncident.incidentId,
-        'ACKNOWLEDGED',
-        authority
-      );
+      const metadata: TransitionMetadata = {
+        reason: 'Quick fix applied',
+        notes: 'Simple configuration change',
+      };
 
-      // Act - Transition to MITIGATING
+      // Act - Direct transition from OPEN to RESOLVED
       const updated = await incidentManager.transitionIncident(
         testIncident.incidentId,
-        'MITIGATING',
-        authority
+        'RESOLVED',
+        authority,
+        metadata
       );
 
       // Assert
-      expect(updated.state).toBe('MITIGATING');
-      expect(updated.acknowledgedAt).toBeDefined();
-      expect(updated.mitigatedAt).toBeDefined();
+      expect(updated.status).toBe('RESOLVED');
+      expect(updated.resolvedAt).toBeDefined();
+      expect(updated.lastModifiedBy.type).toBe('ON_CALL_SRE');
     });
 
     it('should transition MITIGATING → RESOLVED with metadata', async () => {
@@ -375,7 +377,7 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       );
 
       // Assert
-      expect(updated.state).toBe('RESOLVED');
+      expect(updated.status).toBe('RESOLVED');
       expect(updated.resolvedAt).toBeDefined();
       expect(updated.lastModifiedBy.type).toBe('ON_CALL_SRE');
     });
@@ -409,11 +411,11 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       );
 
       // Assert
-      expect(updated.state).toBe('CLOSED');
+      expect(updated.status).toBe('CLOSED');
       expect(updated.closedAt).toBeDefined();
     });
 
-    it('should reject invalid transition OPEN → RESOLVED', async () => {
+    it('should reject invalid transition OPEN → CLOSED', async () => {
       // Arrange
       const authority: Authority = {
         type: 'ON_CALL_SRE',
@@ -424,7 +426,7 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
       await expect(
         incidentManager.transitionIncident(
           testIncident.incidentId,
-          'RESOLVED',
+          'CLOSED',
           authority
         )
       ).rejects.toThrow('Transition not allowed');

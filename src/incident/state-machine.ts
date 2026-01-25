@@ -8,54 +8,66 @@
  * - Authority levels must be sufficient
  * - Required metadata must be present
  * - Terminal states cannot transition
+ * 
+ * 🔒 CORRECTION 1: PENDING → CLOSED removed (no silent drops)
+ * 🔒 CORRECTION 2: CLOSED is terminal (no reopen)
+ * 🔒 CORRECTION 3: ACKNOWLEDGED removed
  */
 
 import {
   Incident,
-  IncidentState,
+  IncidentStatus,
   Authority,
   TransitionMetadata,
   TransitionValidation,
   STATE_TRANSITION_RULES,
   hasAuthority,
-} from './incident.schema';
+} from './incident.schema.js';
 
 export class IncidentStateMachine {
   /**
    * Validate if a transition is allowed
    * 
-   * @param currentState - Current state
-   * @param targetState - Target state
+   * @param currentStatus - Current status
+   * @param targetStatus - Target status
    * @returns Validation result
    */
   validateTransition(
-    currentState: IncidentState,
-    targetState: IncidentState
+    currentStatus: IncidentStatus,
+    targetStatus: IncidentStatus
   ): TransitionValidation {
-    // Cannot transition from same state to itself
-    if (currentState === targetState) {
+    // Cannot transition from same status to itself
+    if (currentStatus === targetStatus) {
       return {
         allowed: false,
-        reason: 'Cannot transition to same state',
+        reason: 'Cannot transition to same status',
+      };
+    }
+
+    // Check if current status is terminal
+    if (this.isTerminal(currentStatus)) {
+      return {
+        allowed: false,
+        reason: `Cannot transition from terminal status: ${currentStatus}`,
       };
     }
 
     // Check if transition is defined in rules
-    const allowedTransitions = STATE_TRANSITION_RULES[currentState];
+    const allowedTransitions = STATE_TRANSITION_RULES[currentStatus];
     if (!allowedTransitions || Object.keys(allowedTransitions).length === 0) {
-      const legalStates = this.getLegalNextStates(currentState);
+      const legalStates = this.getLegalNextStates(currentStatus);
       return {
         allowed: false,
-        reason: `No transitions allowed from ${currentState}. Legal transitions: ${legalStates.join(', ') || 'none'}`,
+        reason: `No transitions allowed from ${currentStatus}. Legal transitions: ${legalStates.join(', ') || 'none'}`,
       };
     }
 
-    const transitionRule = allowedTransitions[targetState];
+    const transitionRule = allowedTransitions[targetStatus];
     if (!transitionRule) {
-      const legalStates = this.getLegalNextStates(currentState);
+      const legalStates = this.getLegalNextStates(currentStatus);
       return {
         allowed: false,
-        reason: `Transition from ${currentState} to ${targetState} is not allowed. Legal transitions: ${legalStates.join(', ')}`,
+        reason: `Illegal transition from ${currentStatus} to ${targetStatus}. Legal transitions: ${legalStates.join(', ')}`,
       };
     }
 
@@ -64,96 +76,81 @@ export class IncidentStateMachine {
   }
 
   /**
-   * Check if a state is terminal
+   * Check if a status is terminal
    * 
-   * @param state - State to check
+   * @param status - Status to check
    * @returns True if terminal
    */
-  isTerminal(state: IncidentState): boolean {
-    return state === 'CLOSED';
+  isTerminal(status: IncidentStatus): boolean {
+    return status === 'CLOSED';
   }
 
   /**
-   * Check if a state requires resolution metadata
+   * Check if a status requires resolution metadata
    * 
-   * @param state - State to check
+   * @param status - Status to check
    * @returns True if resolution required
    */
-  requiresResolution(state: IncidentState): boolean {
-    return state === 'RESOLVED';
+  requiresResolution(status: IncidentStatus): boolean {
+    return status === 'RESOLVED';
   }
 
   /**
-   * Check if a state requires existing resolution
+   * Check if a status requires existing resolution
    * 
-   * @param state - State to check
+   * @param status - Status to check
    * @returns True if existing resolution required
    */
-  requiresExistingResolution(state: IncidentState): boolean {
-    return state === 'CLOSED';
+  requiresExistingResolution(status: IncidentStatus): boolean {
+    return status === 'CLOSED';
   }
 
   /**
-   * Get legal next states from current state
+   * Get legal next states from current status
    * 
-   * @param currentState - Current state
+   * @param currentStatus - Current status
    * @returns Array of legal next states
    */
-  getLegalNextStates(currentState: IncidentState): IncidentState[] {
-    const allowedTransitions = STATE_TRANSITION_RULES[currentState];
+  getLegalNextStates(currentStatus: IncidentStatus): IncidentStatus[] {
+    const allowedTransitions = STATE_TRANSITION_RULES[currentStatus];
     if (!allowedTransitions) {
       return [];
     }
 
-    return Object.keys(allowedTransitions) as IncidentState[];
+    return Object.keys(allowedTransitions) as IncidentStatus[];
   }
 
   /**
-   * Check if a transition is allowed
+   * Check if a transition is allowed with authority
    */
   canTransition(
-    currentState: IncidentState,
-    targetState: IncidentState,
+    currentStatus: IncidentStatus,
+    targetStatus: IncidentStatus,
     authority: Authority,
     metadata?: TransitionMetadata
   ): TransitionValidation {
-    // Cannot transition from same state to itself
-    if (currentState === targetState) {
-      return {
-        allowed: false,
-        reason: 'Cannot transition to same state',
-      };
+    // First check basic transition validity
+    const basicValidation = this.validateTransition(currentStatus, targetStatus);
+    if (!basicValidation.allowed) {
+      return basicValidation;
     }
 
-    // Check if transition is defined in rules
-    const allowedTransitions = STATE_TRANSITION_RULES[currentState];
-    if (!allowedTransitions) {
-      return {
-        allowed: false,
-        reason: `No transitions allowed from ${currentState}`,
-      };
-    }
-
-    const transitionRule = allowedTransitions[targetState];
-    if (!transitionRule) {
-      return {
-        allowed: false,
-        reason: `Transition from ${currentState} to ${targetState} is not allowed`,
-      };
-    }
+    // Get transition rule
+    const allowedTransitions = STATE_TRANSITION_RULES[currentStatus];
+    const transitionRule = allowedTransitions![targetStatus];
 
     // Check authority level
-    if (!hasAuthority(authority.type, transitionRule.minAuthority)) {
+    if (!hasAuthority(authority.type, transitionRule!.minAuthority)) {
       return {
         allowed: false,
-        reason: `Insufficient authority: ${authority.type} < ${transitionRule.minAuthority}`,
-        requiredAuthority: transitionRule.minAuthority,
+        reason: `Insufficient authority: ${authority.type} < ${transitionRule!.minAuthority}`,
+        requiredAuthority: transitionRule!.minAuthority,
       };
     }
 
     // Check required metadata
-    if (transitionRule.requiredMetadata) {
-      const missingMetadata = transitionRule.requiredMetadata.filter(
+    if (transitionRule!.requiredMetadata) {
+      const missingMetadata = transitionRule!.requiredMetadata.filter(
         (field) => !metadata || !metadata[field as keyof TransitionMetadata]
       );
 
@@ -178,14 +175,14 @@ export class IncidentStateMachine {
    */
   transition(
     incident: Incident,
-    targetState: IncidentState,
+    targetStatus: IncidentStatus,
     authority: Authority,
     metadata?: TransitionMetadata
   ): Incident {
     // Validate transition
     const validation = this.canTransition(
-      incident.state,
-      targetState,
+      incident.status,
+      targetStatus,
       authority,
       metadata
     );
@@ -200,18 +197,18 @@ export class IncidentStateMachine {
     const now = new Date().toISOString();
     const updated: Incident = {
       ...incident,
-      state: targetState,
-      lastModifiedAt: now, // Real-time (transition timestamp)
+      status: targetStatus,
+      lastModifiedAt: now,
       lastModifiedBy: authority,
     };
 
-    // Set state-specific timestamps (real-time for human transitions)
-    switch (targetState) {
-      case 'ACKNOWLEDGED':
-        updated.acknowledgedAt = now;
+    // Set status-specific timestamps
+    switch (targetStatus) {
+      case 'OPEN':
+        updated.openedAt = now;
         break;
       case 'MITIGATING':
-        updated.mitigatedAt = now;
+        updated.mitigatingAt = now;
         break;
       case 'RESOLVED':
         updated.resolvedAt = now;
@@ -225,19 +222,19 @@ export class IncidentStateMachine {
   }
 
   /**
-   * Get all allowed transitions from current state
+   * Get all allowed transitions from current status
    */
   getAllowedTransitions(
-    currentState: IncidentState,
+    currentStatus: IncidentStatus,
     authority: Authority
-  ): IncidentState[] {
-    const allowedTransitions = STATE_TRANSITION_RULES[currentState];
+  ): IncidentStatus[] {
+    const allowedTransitions = STATE_TRANSITION_RULES[currentStatus];
     if (!allowedTransitions) {
       return [];
     }
 
     return Object.entries(allowedTransitions)
       .filter(([_, rule]) => hasAuthority(authority.type, rule.minAuthority))
-      .map(([state]) => state as IncidentState);
+      .map(([status]) => status as IncidentStatus);
   }
 }
