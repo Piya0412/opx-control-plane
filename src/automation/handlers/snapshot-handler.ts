@@ -21,7 +21,7 @@ import { SnapshotStore } from '../../learning/snapshot-store';
 import { OutcomeStore } from '../../learning/outcome-store';
 import { CalibrationStore } from '../../learning/calibration-store';
 import { AutomationAuditStore } from '../automation-audit-store';
-import { generateAuditId } from '../audit-id';
+import { computeAuditId } from '../audit-id.js';
 import { withRetry } from '../retry';
 import type { Authority } from '../../promotion/authority.schema';
 import type { SnapshotType } from '../../learning/snapshot.schema';
@@ -96,7 +96,7 @@ export async function handler(event: SnapshotEvent): Promise<SnapshotResult> {
     : { type: 'SYSTEM', identifier: 'snapshot-scheduler' };
   
   // Generate audit ID
-  const auditId = generateAuditId('SNAPSHOT', startTime, VERSION);
+  const auditId = computeAuditId('SNAPSHOT', startTime, VERSION);
   
   try {
     // Determine snapshot type and date range

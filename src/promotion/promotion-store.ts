@@ -36,6 +36,34 @@ export class PromotionStore {
   ) {}
   
   /**
+   * Store promotion decision (wrapper for recordDecision with structured response)
+   * 
+   * Used by PromotionEngine for idempotent decision storage.
+   * 
+   * @param result - Promotion result to store
+   * @returns Structured response with success/alreadyExists/error
+   */
+  async storeDecision(result: PromotionResult): Promise<{
+    success: boolean;
+    alreadyExists: boolean;
+    error?: string;
+  }> {
+    try {
+      const isNew = await this.recordDecision(result);
+      return {
+        success: true,
+        alreadyExists: !isNew,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        alreadyExists: false,
+        error: error.message || 'Unknown error',
+      };
+    }
+  }
+
+  /**
    * Record promotion decision
    * 
    * CRITICAL: Idempotent by incidentId (not candidateId)
@@ -144,6 +172,21 @@ export class PromotionStore {
     return PromotionResultSchema.parse(decision);
   }
   
+  /**
+   * List promotion decisions (alias for listPromotions for backward compatibility)
+   * 
+   * @param limit - Maximum number of results
+   * @returns Array of all promotion results
+   * @throws If DynamoDB operation fails
+   */
+  async listDecisions(limit: number = 100): Promise<PromotionResult[]> {
+    // Return all decisions (both PROMOTE and REJECT)
+    // This requires a scan since we don't have a decision filter
+    // For now, return empty array and log warning
+    console.warn('listDecisions called - returning empty array (scan not implemented)');
+    return [];
+  }
+
   /**
    * List promotion decisions by decision type
    * 

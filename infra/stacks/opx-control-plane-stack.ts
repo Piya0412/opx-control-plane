@@ -22,6 +22,15 @@ import { PatternExtractionLambda } from '../constructs/pattern-extraction-lambda
 import { PatternExtractionSchedule } from '../constructs/pattern-extraction-schedule.js';
 import { CalibrationLambda } from '../constructs/calibration-lambda.js';
 import { CalibrationSchedule } from '../constructs/calibration-schedule.js';
+import { AgentRecommendationsTable } from '../constructs/agent-recommendations-table.js';
+import { AgentExecutionsTable } from '../constructs/agent-executions-table.js';
+import { AgentIamRoles } from '../constructs/agent-iam-roles.js';
+import { AgentOrchestration } from '../constructs/agent-orchestration.js';
+import { AgentDashboard } from '../constructs/agent-dashboard.js';
+import { AgentAlerts } from '../constructs/agent-alerts.js';
+import { BedrockAgentIamRoles } from '../constructs/bedrock-agent-iam-roles.js';
+import { BedrockActionGroups } from '../constructs/bedrock-action-groups.js';
+import { BedrockAgents } from '../constructs/bedrock-agents.js';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -746,6 +755,64 @@ export class OpxControlPlaneStack extends cdk.Stack {
     );
 
     // ========================================
+    // Phase 6: AI Agent Infrastructure
+    // ========================================
+
+    // DynamoDB: Agent Recommendations Table (Phase 6 Step 1)
+    const agentRecommendationsTable = new AgentRecommendationsTable(
+      this,
+      'AgentRecommendationsTable'
+    );
+
+    // DynamoDB: Agent Executions Table (Phase 6 Step 1)
+    const agentExecutionsTable = new AgentExecutionsTable(
+      this,
+      'AgentExecutionsTable'
+    );
+
+    // IAM Roles: Agent Orchestrator and Execution Roles (Phase 6 Step 1)
+    const agentIamRoles = new AgentIamRoles(this, 'AgentIamRoles', {
+      incidentTable: this.incidentsTable,
+      evidenceTable: evidenceBundleTable.table,
+      recommendationsTable: agentRecommendationsTable.table,
+      executionsTable: agentExecutionsTable.table,
+    });
+
+    // Lambda: Agent Orchestration (Phase 6 Step 1)
+    const agentOrchestration = new AgentOrchestration(this, 'AgentOrchestration', {
+      orchestratorRole: agentIamRoles.orchestratorRole,
+      agentExecutionRole: agentIamRoles.agentExecutionRole,
+    });
+
+    // CloudWatch Dashboard: Agent Intelligence (Phase 6 Step 4)
+    const agentDashboard = new AgentDashboard(this, 'AgentDashboard', {
+      orchestratorFunction: agentOrchestration.orchestratorFunction,
+      agentFunctions: agentOrchestration.agentFunctions,
+    });
+
+    // CloudWatch Alarms: Agent Monitoring (Phase 6 Step 4)
+    // TODO: Replace with actual alert email from environment or parameter
+    const agentAlerts = new AgentAlerts(this, 'AgentAlerts', {
+      alertEmail: 'ops-team@example.com', // TODO: Configure via environment
+    });
+
+    // ========================================
+    // Phase 6 Week 3: Bedrock Agents
+    // ========================================
+
+    // IAM Roles: Bedrock Agent Execution Role
+    const bedrockAgentIamRoles = new BedrockAgentIamRoles(this, 'BedrockAgentIamRoles');
+
+    // Action Groups: Lambda functions backing Bedrock Agent tools (9 stubs)
+    const bedrockActionGroups = new BedrockActionGroups(this, 'BedrockActionGroups');
+
+    // Bedrock Agents: 6 agents with action groups and aliases
+    const bedrockAgents = new BedrockAgents(this, 'BedrockAgents', {
+      executionRole: bedrockAgentIamRoles.bedrockAgentRole,
+      actionGroups: bedrockActionGroups,
+    });
+
+    // ========================================
     // API Gateway: Human Interface
     // ========================================
     this.api = new apigateway.RestApi(this, 'ControlPlaneApi', {
@@ -952,6 +1019,37 @@ export class OpxControlPlaneStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'MonthlyCalibrationRuleName', {
       value: calibrationSchedule.monthlyRule.ruleName,
       description: 'Monthly calibration EventBridge rule name (Phase 5 Step 3)',
+    });
+
+    // Phase 6 Outputs
+    new cdk.CfnOutput(this, 'AgentRecommendationsTableName', {
+      value: agentRecommendationsTable.table.tableName,
+      description: 'DynamoDB agent recommendations table name (Phase 6 Step 1)',
+    });
+
+    new cdk.CfnOutput(this, 'AgentExecutionsTableName', {
+      value: agentExecutionsTable.table.tableName,
+      description: 'DynamoDB agent executions table name (Phase 6 Step 1)',
+    });
+
+    new cdk.CfnOutput(this, 'AgentOrchestratorFunctionName', {
+      value: agentOrchestration.orchestratorFunction.functionName,
+      description: 'Agent orchestrator Lambda function name (Phase 6 Step 1)',
+    });
+
+    new cdk.CfnOutput(this, 'AgentFunctionNames', {
+      value: agentOrchestration.agentFunctions.map(f => f.functionName).join(', '),
+      description: 'Agent Lambda function names (Phase 6 Step 1)',
+    });
+
+    new cdk.CfnOutput(this, 'AgentDashboardName', {
+      value: agentDashboard.dashboard.dashboardName,
+      description: 'CloudWatch dashboard name for agent intelligence (Phase 6 Step 4)',
+    });
+
+    new cdk.CfnOutput(this, 'AgentAlertTopics', {
+      value: `Failures: ${agentAlerts.failureTopic.topicArn}, Budget: ${agentAlerts.budgetTopic.topicArn}, Quality: ${agentAlerts.qualityTopic.topicArn}`,
+      description: 'SNS topics for agent alerts (Phase 6 Step 4)',
     });
   }
 }

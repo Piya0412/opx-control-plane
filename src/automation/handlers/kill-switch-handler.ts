@@ -17,7 +17,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { z } from 'zod';
 import { KillSwitch } from '../kill-switch';
 import { AutomationAuditStore } from '../automation-audit-store';
-import { generateAuditId } from '../audit-id';
+import { computeAuditId } from '../audit-id.js';
 import type { Authority } from '../../promotion/authority.schema';
 
 const VERSION = '1.0.0';
@@ -84,7 +84,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       await killSwitch.disable(authority, request.reason);
 
       // FIX 7.1: Audit the action
-      const auditId = generateAuditId('KILL_SWITCH_DISABLE', startTime, VERSION);
+      const auditId = computeAuditId('KILL_SWITCH_DISABLE', startTime, VERSION);
       await auditStore.recordAudit({
         auditId,
         operationType: 'KILL_SWITCH_DISABLE',
@@ -114,7 +114,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       await killSwitch.enable(authority);
 
       // FIX 7.1: Audit the action
-      const auditId = generateAuditId('KILL_SWITCH_ENABLE', startTime, VERSION);
+      const auditId = computeAuditId('KILL_SWITCH_ENABLE', startTime, VERSION);
       await auditStore.recordAudit({
         auditId,
         operationType: 'KILL_SWITCH_ENABLE',

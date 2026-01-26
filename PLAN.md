@@ -1,4 +1,4 @@
-# opx-control-plane — Development Plan (UPDATED)
+# opx-control-plane — Development Plan (CORRECTED)
 
 ## Program Identity
 
@@ -6,9 +6,13 @@
 |-----------|-------|
 | Project | opx-control-plane |
 | Type | Enterprise Operational Control Plane |
-| Goal | Encode SRE discipline into a deterministic, auditable system |
+| Goal | Production-grade Bedrock multi-agent system with LangGraph orchestration |
 
-**This system must behave correctly at 3 AM during an incident.**
+**This system demonstrates senior-level capability in:**
+- Bedrock-native multi-agent architectures
+- LangGraph-based stateful orchestration
+- Agent-to-agent reasoning and consensus
+- Cost, reliability, and governance at scale
 
 ---
 
@@ -43,12 +47,6 @@ Lock scope and prevent AI-demo drift.
 - [x] Domain models defined
 - [x] Tests passing
 
-### Forbidden
-- Bedrock
-- LangGraph
-- Agents
-- Chat UX
-
 ---
 
 ## Phase 1 — Incident Control Plane (FOUNDATION)
@@ -77,11 +75,11 @@ CREATED → ANALYZING → DECIDED → WAITING_FOR_HUMAN → CLOSED
 ```
 
 ### Exit Criteria
-- ✅ Incidents persist across time (DynamoDB with point-in-time recovery)
-- ✅ Full audit & replay works (deterministic, authoritative, hash-verified)
-- ✅ No intelligence present (verified via code search, 0 matches)
+- ✅ Incidents persist across time
+- ✅ Full audit & replay works
+- ✅ No intelligence present
 - ✅ IAM-only enforcement
-- ✅ 71 tests passing (13 suites, 0 failures)
+- ✅ 71 tests passing
 
 ---
 
@@ -93,254 +91,345 @@ CREATED → ANALYZING → DECIDED → WAITING_FOR_HUMAN → CLOSED
 ### Objective
 Detect problems deterministically without deciding outcomes.
 
-**Rule:** Monitoring observes. Detection signals. Control plane decides.
-
 ### Capabilities
-- ✅ Signal ingestion with normalization (54 signals)
-- ✅ Detection engine with rule evaluation (6 rules)
+- ✅ Signal ingestion with normalization
+- ✅ Detection engine with rule evaluation
 - ✅ Correlation threshold logic
-- ✅ Fail-closed behavior throughout
+- ✅ Fail-closed behavior
 - ✅ Deterministic processing
 - ✅ Complete audit trail
 
-### Forbidden
-- ML-based anomaly detection
-- Predictive alerting
-- Auto-remediation
-- Dynamic thresholds
-
-### Exit Criteria
-- ✅ Signal ingestion working (54 signals stored)
-- ✅ Detection rules loading (6 rules loaded)
-- ✅ Detection creation (3 detections created)
-- ✅ Correlation threshold logic (thresholdMetRules: 1)
-- ✅ Fail-closed behavior (refused unsafe escalation)
-- ✅ Deterministic processing (same inputs → same IDs)
-- ✅ Complete audit trail (all events stored)
-
 ---
 
-## Phase 3 — Incident Construction & Promotion (CONTROL PLANE)
+## Phase 3 — Incident Construction & Promotion
 
-**Status:** 🚧 IN PROGRESS (3/5 complete)  
-**Started:** January 22, 2026
-
-**CRITICAL:** This phase is 100% deterministic and contains NO AI.
+**Status:** ✅ COMPLETE  
+**Completion Date:** 2026-01-23
 
 ### Objective
 Convert correlated evidence into authoritative incidents via explicit promotion.
 
-### Sub-Phases (LOCKED)
-
-#### 3.1 Evidence Model ✅ COMPLETE
-**Completed:** January 22, 2026 (~2 hours)
-
-**Deliverables:**
-- Evidence bundle schema with deterministic identity
-- Evidence builder with fail-closed validation
-- Evidence store with idempotent operations
-- DynamoDB table deployed and ACTIVE
-- 11/11 integration tests passing
-
-**Key Files:**
-- `src/evidence/evidence-bundle.schema.ts`
-- `src/evidence/evidence-builder.ts`
-- `src/evidence/evidence-store.ts`
-- `src/evidence/evidence-id.ts`
-- `infra/constructs/evidence-bundle-table.ts`
-
-#### 3.2 Confidence Model ✅ COMPLETE
-**Completed:** January 22, 2026 (~2 hours)
-
-**Deliverables:**
-- Deterministic confidence scoring (5 factors)
-- Confidence calculator with weighted sum
-- In-memory assessment (no persistence)
-- Integration with candidate orchestrator
-- 47/47 tests passing
-
-**Key Files:**
-- `src/confidence/confidence.schema.ts`
-- `src/confidence/confidence-factors.ts`
-- `src/confidence/confidence-calculator.ts`
-
-**Model Version:** v1.0.0  
-**Promotion Threshold:** 0.6 (HIGH minimum)
-
-#### 3.3 Promotion Gate ✅ COMPLETE
-**Completed:** January 22, 2026
-
-**Deliverables:**
-- Binary decision logic (PROMOTE | REJECT)
-- Confidence threshold check (>= HIGH, >= 0.6)
-- Evidence-derived incident identity
-- Promotion store with incident-scoped identity
-- 20/20 tests passing
-
-**Key Files:**
-- `src/promotion/promotion.schema.ts`
-- `src/promotion/incident-identity.ts`
-- `src/promotion/promotion-gate.ts`
-- `src/promotion/promotion-store.ts`
-
-**Gate Version:** v1.0.0
-
-#### 3.4 Incident Lifecycle 🚧 IN PROGRESS
-**Status:** Implementation started  
-**Estimated Effort:** 3-4 days
-
-**Scope:**
-- Incident state machine (OPEN → ACKNOWLEDGED → MITIGATING → RESOLVED → CLOSED)
-- State transition validation
-- Incident manager with creation and transitions
-- Incident store operations
-- Event schemas (IncidentCreated, StateTransitioned)
-- Integration with promotion gate
-
-**Key Files (In Progress):**
-- `src/incident/incident.schema.ts` ✅
-- `src/incident/state-machine.ts` ✅
-- `src/incident/incident-manager.ts` ✅
-- `src/incident/incident-store.ts` ✅
-- `src/incident/incident-event.schema.ts` ✅
-- `src/orchestration/candidate-event-handler.ts` (updated) ✅
-
-**Critical Rules:**
-- Creation timestamps: DERIVED from promotionResult.evaluatedAt
-- Transition timestamps: Real-time (human actions)
-- Severity: DERIVED from evidence (max severity)
-- Incident identity: SHA256(service + evidenceId) - LOCKED
-
-#### 3.5 Idempotency & Replay 📋 PENDING
-**Status:** Awaiting Phase 3.4  
-**Estimated Effort:** 2-3 days
-
-**Scope:**
-- End-to-end idempotency verification
-- Replay verification service
-- Determinism validation
-- Replay service implementation
-
-### Non-Negotiable Invariants
-
-- **P3-I1: Evidence-First** ✅ - No incident without evidence
-- **P3-I2: Promotion Is Explicit** ✅ - Conscious gate decision required
-- **P3-I3: Deterministic Decisions** ✅ - Same inputs → same outputs
-- **P3-I4: Fail-Closed Escalation** ✅ - Insufficient confidence → reject
-- **P3-I5: One Authority, One Incident** ✅ - No duplicate incidents
-
-### Progress Visualization
-
-```
-Phase 3.1: Evidence Model         ████████████████████ 100% ✅
-Phase 3.2: Confidence Model       ████████████████████ 100% ✅
-Phase 3.3: Promotion Gate         ████████████████████ 100% ✅
-Phase 3.4: Incident Lifecycle     ████████░░░░░░░░░░░░  40% 🚧
-Phase 3.5: Idempotency & Replay   ░░░░░░░░░░░░░░░░░░░░   0% 📋
-                                  ────────────────────
-Overall Phase 3 Progress:         ████████████░░░░░░░░  60%
-```
-
-### Outcome
-A fully authoritative incident lifecycle with replay guarantees.
+### Deliverables
+- ✅ Evidence model with deterministic identity
+- ✅ Confidence scoring (5 factors, deterministic)
+- ✅ Promotion gate (binary decision logic)
+- ✅ Incident lifecycle state machine
+- ✅ Idempotency & replay verification
 
 ---
 
-## Phase 4 — Post-Incident Learning & Evaluation (OFFLINE ONLY)
+## Phase 4 — Post-Incident Learning & Evaluation
 
-**Status:** 🔲 NOT STARTED
+**Status:** ✅ COMPLETE  
+**Completion Date:** 2026-01-24
 
 ### Objective
 Build institutional memory after incidents are CLOSED.
 
-### Rules
-- No online learning
-- No policy mutation
-- No mid-incident adaptation
-- Used only to improve future recommendations
-
 ### Capabilities
-- Outcome recording (CLOSED incidents only)
-- Human-validated feedback
-- Pattern extraction
-- Confidence calibration
-
-### Exit Criteria
-- [ ] Learning is explainable
-- [ ] Improves future recommendations only
-- [ ] No policy mutation
-- [ ] No historical rewriting
+- ✅ Outcome recording (CLOSED incidents only)
+- ✅ Human-validated feedback
+- ✅ Pattern extraction (offline)
+- ✅ Confidence calibration
+- ✅ Resolution summaries
 
 ---
 
-## Phase 5 — Limited Automation (OPTIONAL, LAST FOR AUTHORITY)
+## Phase 5 — Limited Automation Infrastructure
 
-**Status:** 🔲 NOT STARTED
+**Status:** ✅ COMPLETE  
+**Completion Date:** 2026-01-24
 
 ### Objective
-Earn small, reversible automation through human trust.
-
-### Preconditions (ALL REQUIRED)
-- ≥50 successful human-approved actions
-- Zero policy violations
-- Kill switch proven
-- Stable confidence metrics
-- SRE sign-off
+Infrastructure for human-approved automation with kill switch.
 
 ### Capabilities
-- Single-step, idempotent actions
-- Explicit human approval
-- Instant rollback
-- Scoped blast radius
-
-### Kill Switch
-- Global disable <30 seconds
-- No redeploy required
-
-### Exit Criteria
-- [ ] Automation never surprises humans
-- [ ] Kill switch proven
-- [ ] Rollback tested
+- ✅ Automation audit trail
+- ✅ Pattern extraction handlers
+- ✅ Calibration handlers
+- ✅ Snapshot handlers
+- ✅ Kill switch mechanism
+- ✅ Rate limiting
+- ✅ Retry logic
 
 ---
 
-## Phase 6 — AI Decision Intelligence Layer (ADVISORY ONLY)
+## Phase 6 — Bedrock Multi-Agent Intelligence with LangGraph
 
-**Status:** 🔲 NOT STARTED
+**Status:** 🔄 REFACTORING (Lambda agents → LangGraph + Bedrock)  
+**Started:** January 25, 2026
 
-**This is where agents are implemented.**
+### ARCHITECTURAL CORRECTION
+
+**Previous Implementation (REJECTED):**
+- ❌ Lambda-per-agent architecture
+- ❌ Custom fan-out orchestrator
+- ❌ Direct `InvokeModel` wrappers treated as "agents"
+- ❌ Not aligned with Bedrock + LangGraph architecture
+
+**Why Lambda Agents Were Rejected:**
+1. **Not Bedrock-native** - Wrapping InvokeModel != Bedrock Agent
+2. **No stateful orchestration** - Custom fan-out lacks LangGraph capabilities
+3. **Not resume-aligned** - Doesn't demonstrate LangGraph expertise
+4. **Limited agent-to-agent reasoning** - No consensus, no retries, no fallbacks
+5. **Not production-grade multi-agent** - Missing key orchestration patterns
+
+**Correct Implementation (IN PROGRESS):**
+- ✅ Bedrock Agents (native constructs with action groups)
+- ✅ LangGraph orchestration (stateful DAG)
+- ✅ Agent-to-agent reasoning and consensus
+- ✅ Retry, fallback, and partial success handling
+- ✅ Replay determinism preserved
 
 ### Objective
-Provide deep investigation and recommendations without authority.
+Provide deep investigation and recommendations through a production-grade multi-agent system.
 
-### Characteristics
-- Read-only
-- No execution
-- No approvals
-- Structured JSON output
-- Time-bounded
+### Agent System Requirements
 
-### Agents (6 total)
-1. **Signal Analysis Agent** - Metrics/logs/traces correlation
-2. **Historical Incident Agent** - Similar incident lookup
-3. **Change Intelligence Agent** - Deploy/config correlation
-4. **Risk & Blast Radius Agent** - Impact estimation
-5. **Knowledge (RAG) Agent** - Runbook/postmortem search
-6. **Execution Proposal Agent** - Action recommendations
+**CORE ANALYSIS AGENTS (4)**
+1. **Signal Intelligence Agent**
+   - Analyzes metrics, logs, traces
+   - Correlates observability signals
+   - Identifies anomaly patterns
+   - Output: Signal analysis with confidence
 
-### Orchestration
-- LangGraph-based orchestration
-- AWS Bedrock or Ollama-backed LLMs
-- Parallel, read-only agents
+2. **Historical Incident Pattern Agent**
+   - Searches similar past incidents
+   - Identifies recurring patterns
+   - Suggests proven resolutions
+   - Output: Historical matches with similarity scores
 
-### Authority
-**NONE** - Advisory only, no decision-making power
+3. **Change Intelligence Agent**
+   - Correlates deployments, config changes
+   - Identifies change-related causation
+   - Tracks deployment timelines
+   - Output: Change correlation with confidence
+
+4. **Risk & Blast Radius Agent**
+   - Estimates incident impact
+   - Identifies affected services/users
+   - Calculates blast radius
+   - Output: Risk assessment with scope
+
+**KNOWLEDGE & STRATEGY AGENTS (2)**
+5. **Knowledge RAG Agent**
+   - Searches runbooks, postmortems, docs
+   - Consumes projections only (no vector store building)
+   - Provides explainable citations
+   - Output: Relevant knowledge with citations
+
+6. **Response Strategy Agent**
+   - Ranks potential actions
+   - Estimates action effectiveness
+   - NO execution authority
+   - Output: Ranked recommendations only
+
+**GOVERNANCE & QUALITY AGENTS (2)**
+7. **Consensus & Confidence Agent**
+   - Aggregates agent outputs
+   - Resolves conflicts
+   - Computes consensus confidence
+   - Output: Unified recommendation with confidence
+
+8. **Cost & Budget Guardian Agent**
+   - Tracks LLM token usage
+   - Enforces budget limits
+   - Signals budget exceeded (does NOT throw)
+   - Output: Budget status and cost tracking
+
+**OPTIONAL (RECOMMENDED)**
+9. **Reliability / Hallucination Auditor Agent**
+   - Validates agent outputs for consistency
+   - Detects hallucinations
+   - Flags low-quality responses
+   - Output: Quality assessment
+
+### LangGraph Orchestration Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                  LangGraph Orchestrator                 │
+│                  (Single Lambda / ECS)                  │
+│                                                         │
+│  State: {                                               │
+│    incidentId, evidenceBundle, agentOutputs,            │
+│    consensus, confidence, budget, retries               │
+│  }                                                      │
+│                                                         │
+│  Graph:                                                 │
+│    START                                                │
+│      ↓                                                  │
+│    [Budget Check] ──(exceeded)──→ [Budget Signal]       │
+│      ↓ (ok)                                             │
+│    [Parallel Analysis]                                  │
+│      ├─→ [Signal Intelligence Agent]                    │
+│      ├─→ [Historical Pattern Agent]                     │
+│      ├─→ [Change Intelligence Agent]                    │
+│      └─→ [Risk & Blast Radius Agent]                    │
+│      ↓ (all complete or timeout)                        │
+│    [Knowledge RAG Agent] ──(with context)──→            │
+│      ↓                                                  │
+│    [Response Strategy Agent] ──(with all inputs)──→     │
+│      ↓                                                  │
+│    [Consensus & Confidence Agent]                       │
+│      ↓                                                  │
+│    [Reliability Auditor] (optional)                     │
+│      ↓                                                  │
+│    [Cost Guardian] ──(final budget check)──→            │
+│      ↓                                                  │
+│    END (return recommendation)                          │
+│                                                         │
+│  Retry Logic:                                           │
+│    - Per-agent retry (3 attempts)                       │
+│    - Exponential backoff                                │
+│    - Partial success handling                           │
+│    - Timeout fallbacks                                  │
+│                                                         │
+│  Replay Determinism:                                    │
+│    - Deterministic node execution order                 │
+│    - Timestamped state snapshots                        │
+│    - Idempotent agent calls                             │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Agent Contracts
+
+**Input (All Agents):**
+```typescript
+{
+  incidentId: string;
+  evidenceBundle: EvidenceBundle;
+  context?: {
+    priorAgentOutputs?: AgentOutput[];
+    timeConstraint?: number; // ms
+    budgetRemaining?: number; // USD
+  };
+}
+```
+
+**Output (All Agents):**
+```typescript
+{
+  agentId: string;
+  agentVersion: string;
+  executionId: string;
+  timestamp: string;
+  confidence: number; // 0.0 - 1.0
+  reasoning: string;
+  findings: AgentSpecificFindings;
+  citations?: Citation[];
+  cost: {
+    inputTokens: number;
+    outputTokens: number;
+    estimatedCost: number; // USD
+  };
+  metadata: {
+    duration: number; // ms
+    retries: number;
+    model: string;
+  };
+}
+```
+
+### Hard Constraints
+
+**Agents:**
+- ✅ NEVER execute actions
+- ✅ NEVER mutate incident state
+- ✅ ALWAYS produce hypotheses with confidence
+- ✅ ALWAYS include reasoning and citations
+- ✅ ALWAYS track cost and tokens
+
+**LangGraph:**
+- ✅ MUST manage retries, fallbacks, partial success
+- ✅ MUST support replay determinism
+- ✅ MUST enforce timeouts per agent
+- ✅ MUST track state transitions
+- ✅ MUST handle agent failures gracefully
+
+**Bedrock:**
+- ✅ Use Bedrock Agent constructs where possible
+- ✅ Do NOT treat InvokeModel wrappers as "agents"
+- ✅ Use action groups for read-only queries
+- ✅ Use knowledge bases for RAG (Phase 7)
+
+### Infrastructure
+
+**LangGraph Deployment:**
+- Single Lambda function (or ECS for complex graphs)
+- State persistence in DynamoDB
+- Checkpointing for replay
+- CloudWatch metrics and X-Ray tracing
+
+**Bedrock Agents:**
+- 8+ Bedrock Agent resources
+- Action groups for read-only operations
+- IAM roles with least privilege
+- Cost tracking per agent
+
+**Observability:**
+- CloudWatch dashboard (agent performance)
+- X-Ray tracing (end-to-end)
+- Cost tracking (per agent, per incident)
+- Quality metrics (confidence, hallucination rate)
+
+### Data Model
+
+**Tables:**
+- `opx-agent-recommendations` - Final recommendations
+- `opx-agent-executions` - Execution logs (redacted LLM I/O)
+- `opx-langgraph-state` - LangGraph checkpoints
+
+**Schemas:**
+- Agent input/output contracts
+- LangGraph state schema
+- Recommendation schema
 
 ### Exit Criteria
-- [ ] Agents fail safely
+
+- [ ] 8+ Bedrock Agents deployed
+- [ ] LangGraph orchestrator deployed
+- [ ] Agent-to-agent reasoning working
+- [ ] Consensus mechanism validated
+- [ ] Retry and fallback logic tested
+- [ ] Replay determinism verified
+- [ ] Cost tracking operational
+- [ ] Observability dashboard live
+- [ ] All agents fail safely
 - [ ] Controller remains deterministic
 - [ ] Recommendations auditable
 - [ ] Structured output validated
+
+### Migration Plan
+
+**Phase 1: Preserve Logic**
+- Extract agent logic from Lambda functions
+- Convert to LangGraph node functions
+- Preserve prompts, reasoning, validation
+
+**Phase 2: Build LangGraph**
+- Define state schema
+- Build DAG with nodes and edges
+- Implement retry and fallback logic
+- Add consensus node
+
+**Phase 3: Deploy Bedrock Agents**
+- Create Bedrock Agent resources
+- Define action groups (read-only)
+- Configure IAM roles
+- Test agent invocation
+
+**Phase 4: Integration**
+- Connect LangGraph to Bedrock Agents
+- Wire up state persistence
+- Add observability
+- Test end-to-end
+
+**Phase 5: Cleanup**
+- Remove Lambda-per-agent infrastructure
+- Remove custom orchestrator
+- Update documentation
+- Verify tests
 
 ---
 
@@ -349,16 +438,11 @@ Provide deep investigation and recommendations without authority.
 **Status:** 🔲 NOT STARTED
 
 ### Objective
-Augment agents with institutional knowledge.
-
-### Sources
-- Closed incidents
-- Runbooks
-- Postmortems
-- Architecture docs
+Augment agents with institutional knowledge through vector search.
 
 ### Capabilities
-- Vector search (OpenSearch / FAISS / Pinecone)
+- Vector embeddings (Bedrock Titan Embeddings)
+- Knowledge base (Bedrock Knowledge Bases)
 - Deterministic chunking & versioning
 - Explainable citations
 
@@ -367,11 +451,6 @@ Augment agents with institutional knowledge.
 - Explainable citations
 - Deterministic retrieval
 - No mid-incident embedding updates
-
-### Exit Criteria
-- [ ] Measurable recommendation improvement
-- [ ] Explainable citations
-- [ ] No document auto-editing
 
 ---
 
@@ -388,21 +467,11 @@ Make AI behavior observable, auditable, and governable.
 - Guardrails enforcement
 - Structured output validation
 - Token usage tracking
-
-### Forbidden
-- Hidden prompts
-- Untracked agent calls
-- Silent failures
-
-### Exit Criteria
-- [ ] AI SLOs enforced
-- [ ] Human trust measurable
-- [ ] All prompts traced
-- [ ] Cost attribution working
+- Hallucination detection
 
 ---
 
-## Phase 9 — Human-Approved Autonomous Execution (GATED)
+## Phase 9 — Human-Approved Autonomous Execution
 
 **Status:** 🔲 NOT STARTED
 
@@ -415,22 +484,6 @@ Allow tightly scoped execution only after trust is proven.
 - Instant rollback
 - Global kill switch
 
-### Capabilities
-- Agent-proposed actions
-- Explicit approvals
-- Idempotent execution
-- Rollback guaranteed
-
-### Forbidden
-- Multi-step autonomy
-- Cross-service execution
-- Silent execution
-
-### Exit Criteria
-- [ ] Kill switch proven
-- [ ] Rollback tested
-- [ ] Human approval enforced
-
 ---
 
 ## Milestone Summary
@@ -440,49 +493,28 @@ Allow tightly scoped execution only after trust is proven.
 | 0 | Foundation | ❌ | Deterministic | ✅ COMPLETE |
 | 1 | Incident Control Plane | ❌ | Deterministic | ✅ COMPLETE |
 | 2 | Observability & Detection | ❌ | Deterministic | ✅ COMPLETE |
-| 3 | Incident Construction & Promotion | ❌ | Deterministic | 🚧 IN PROGRESS (60%) |
-| 4 | Post-Incident Learning | ✅ Offline | Read-only | 🔲 NOT STARTED |
-| 5 | Limited Automation | ✅ Gated | Human-approved | 🔲 NOT STARTED |
-| 6 | AI Decision Intelligence | ✅ Advisory | None | 🔲 NOT STARTED |
+| 3 | Incident Construction | ❌ | Deterministic | ✅ COMPLETE |
+| 4 | Post-Incident Learning | ✅ Offline | Read-only | ✅ COMPLETE |
+| 5 | Automation Infrastructure | ✅ Gated | Human-approved | ✅ COMPLETE |
+| 6 | Bedrock + LangGraph Agents | ✅ Advisory | None | 🔄 REFACTORING |
 | 7 | RAG Knowledge Layer | ✅ Advisory | None | 🔲 NOT STARTED |
 | 8 | AI Governance | ✅ | Governed | 🔲 NOT STARTED |
 | 9 | Human-Approved Automation | ✅ | Gated | 🔲 NOT STARTED |
 
 ---
 
-## Current Status Summary
-
-### Completed Phases (3)
-- ✅ Phase 0: Foundation
-- ✅ Phase 1: Incident Control Plane (71 tests passing)
-- ✅ Phase 2: Observability & Detection (54 signals, 6 rules, 3 detections)
-
-### In Progress (1)
-- 🚧 Phase 3: Incident Construction & Promotion (60% complete)
-  - ✅ 3.1 Evidence Model (11 tests passing)
-  - ✅ 3.2 Confidence Model (47 tests passing)
-  - ✅ 3.3 Promotion Gate (20 tests passing)
-  - 🚧 3.4 Incident Lifecycle (implementation started)
-  - 📋 3.5 Idempotency & Replay (pending)
-
-### Pending Phases (6)
-- 🔲 Phase 4: Post-Incident Learning
-- 🔲 Phase 5: Limited Automation
-- 🔲 Phase 6: AI Decision Intelligence
-- 🔲 Phase 7: RAG Knowledge Layer
-- 🔲 Phase 8: AI Governance
-- 🔲 Phase 9: Human-Approved Automation
-
----
-
 ## Final Note
 
-This project is not a chatbot. It is not an AI demo. It is a deterministic SRE control plane with layered intelligence.
+This project is a **production-grade Bedrock multi-agent system** demonstrating:
+- Senior-level Bedrock architecture
+- LangGraph stateful orchestration
+- Agent-to-agent reasoning and consensus
+- Production observability and governance
 
-**That distinction is the entire value.**
+**This is not a demo. This is a resume-defining platform.**
 
 ---
 
-**Last Updated:** January 22, 2026  
-**Current Phase:** 3.4 (Incident Lifecycle)  
-**Overall Progress:** 3.6 / 10 phases (36%)
+**Last Updated:** January 25, 2026  
+**Current Phase:** 6 (Bedrock + LangGraph Refactor)  
+**Overall Progress:** 5.2 / 10 phases (52%)

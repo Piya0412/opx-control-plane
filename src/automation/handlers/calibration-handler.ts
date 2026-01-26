@@ -23,7 +23,7 @@ import { ConfidenceCalibrator } from '../../learning/confidence-calibrator';
 import { CalibrationStore } from '../../learning/calibration-store';
 import { OutcomeStore } from '../../learning/outcome-store';
 import { AutomationAuditStore } from '../automation-audit-store';
-import { generateAuditId } from '../audit-id';
+import { computeAuditId } from '../audit-id.js';
 import { withRetry } from '../retry';
 import type { Authority } from '../../promotion/authority.schema';
 
@@ -89,7 +89,7 @@ export async function handler(event: CalibrationEvent): Promise<CalibrationResul
     : { type: 'SYSTEM', identifier: 'calibration-scheduler' };
   
   // Generate audit ID
-  const auditId = generateAuditId('CALIBRATION', startTime, VERSION);
+  const auditId = computeAuditId('CALIBRATION', startTime, VERSION);
   
   try {
     // FIX 3.1: Get bounded calibration window (previous month)

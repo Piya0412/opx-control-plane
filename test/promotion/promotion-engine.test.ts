@@ -76,9 +76,11 @@ describe('CP-6: Promotion Engine', () => {
       loadPolicy: vi.fn(),
     };
     mockPromotionStore = {
-      storeDecision: vi.fn(),
-      isAlreadyPromoted: vi.fn(),
-      getRecentPromotions: vi.fn(),
+      recordDecision: vi.fn(),
+      storeDecision: vi.fn().mockResolvedValue({ success: true, alreadyExists: false }),
+      getDecisionByIncidentId: vi.fn(),
+      listPromotions: vi.fn(),
+      listDecisions: vi.fn().mockResolvedValue([]),
     };
     mockAuditEmitter = {
       emitDecisionAudit: vi.fn(),
@@ -100,9 +102,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ success: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(true);
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: true });
 
       const decision = await engine.processPromotionRequest(
@@ -120,9 +122,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ success: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(true);
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: true });
 
       await engine.processPromotionRequest(request, '2026-01-16T10:35:00.000Z');
@@ -136,9 +138,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ success: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(true);
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: true });
 
       await engine.processPromotionRequest(request, '2026-01-16T10:35:00.000Z');
@@ -192,9 +194,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ success: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(true);
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: false, error: 'Audit failed' });
 
       const decision = await engine.processPromotionRequest(
@@ -222,9 +224,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ success: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(true);
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: true });
 
       const decision1 = await engine.processPromotionRequest(
@@ -249,9 +251,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ success: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(true);
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: true });
 
       const decision1 = await engine.processPromotionRequest(request, currentTime);
@@ -269,9 +271,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ success: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(true);
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: true });
 
       const decision = await engine.processPromotionRequest(request, currentTime);
@@ -287,9 +289,9 @@ describe('CP-6: Promotion Engine', () => {
 
       (mockCandidateStore.get as any).mockResolvedValue(candidate);
       (mockPolicyLoader.loadPolicy as any).mockReturnValue(DEFAULT_POLICY);
-      (mockPromotionStore.isAlreadyPromoted as any).mockResolvedValue(false);
-      (mockPromotionStore.getRecentPromotions as any).mockResolvedValue([]);
-      (mockPromotionStore.storeDecision as any).mockResolvedValue({ alreadyExists: true });
+      (mockPromotionStore.getDecisionByIncidentId as any).mockResolvedValue(null);
+      (mockPromotionStore.listPromotions as any).mockResolvedValue([]);
+      (mockPromotionStore.recordDecision as any).mockResolvedValue(false); // Already exists
       (mockAuditEmitter.emitDecisionAudit as any).mockResolvedValue({ emitted: true });
 
       const decision = await engine.processPromotionRequest(

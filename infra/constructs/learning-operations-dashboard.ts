@@ -17,8 +17,6 @@ import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
-const VERSION = '1.0.0';
-
 export interface LearningOperationsDashboardProps {
   /**
    * Log groups for each operation handler

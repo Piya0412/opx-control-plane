@@ -20,8 +20,6 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Construct } from 'constructs';
 
-const VERSION = '1.0.0';
-
 export interface LearningOperationsAlertsProps {
   /**
    * CloudWatch namespace for metrics

@@ -21,7 +21,7 @@ import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import { z } from 'zod';
 import { RateLimiter } from '../rate-limiter';
 import { AutomationAuditStore } from '../automation-audit-store';
-import { generateAuditId } from '../audit-id';
+import { computeAuditId } from '../audit-id.js';
 import type { Authority } from '../../promotion/authority.schema';
 import type { OperationType } from '../automation-audit.schema';
 
@@ -106,7 +106,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     // Generate audit ID (will be used by async Lambda)
     const startTime = new Date().toISOString();
-    const auditId = generateAuditId(operationType, startTime, VERSION);
+    const auditId = computeAuditId(operationType, startTime, VERSION);
 
     // REMINDER: Async execution + immediate audit ID return
     // No synchronous work inside API Gateway
