@@ -91,9 +91,10 @@ Output chunks with stable IDs
 
 ```typescript
 interface Chunk {
-  chunk_id: string;           // SHA256(source_file + start_line + content)
+  chunk_id: string;           // SHA256(document_id + start_line + content)
+  document_id: string;        // From Phase 7.1 (content-addressable)
+  document_version: string;   // Semantic version (e.g., "1.0.0")
   source_file: string;        // e.g., "runbooks/rds-failover.md"
-  source_version: string;     // Git commit SHA
   start_line: number;         // Line number in source
   end_line: number;           // Line number in source
   content: string;            // Chunk text
@@ -101,9 +102,19 @@ interface Chunk {
   section_header: string;     // Parent markdown header
   chunk_type: 'header' | 'paragraph' | 'code' | 'list';
   overlap_with_previous: boolean;
-  created_at: string;         // ISO timestamp (for audit only)
 }
 ```
+
+**Why No Timestamps:**
+- Timestamps violate determinism (same doc → different timestamps)
+- Chunk objects must be pure and deterministic
+- Audit timestamps belong in ingestion logs/manifests, NOT chunk identity
+
+**Why document_id Instead of Git SHA:**
+- `document_id` is authoritative (from Phase 7.1)
+- Git SHA is environment-dependent (rebase/squash changes SHA)
+- Chunking may occur outside git context (CI, packaged artifacts)
+- Same document content must produce same chunks regardless of git history
 
 ### Chunking Rules
 
@@ -113,6 +124,11 @@ interface Chunk {
 4. **Lists** - Keep together if < max_chunk_size
 5. **Tables** - Keep together if < max_chunk_size
 6. **Overlap** - Last 50-100 tokens of previous chunk prepended
+
+**Overlap Semantics:**
+- Semantic boundary preservation takes precedence over overlap targets
+- Overlap may be < configured value when boundaries prevent clean overlap
+- Example: If next semantic unit starts at token 50, but overlap target is 100, use 50-token overlap to preserve boundary
 
 ### Example
 
@@ -143,12 +159,16 @@ Check CloudWatch metrics:
 ```json
 {
   "chunk_id": "a3f5e8...",
+  "document_id": "d4e5f6...",
+  "document_version": "1.0.0",
   "source_file": "runbooks/rds-failover.md",
   "start_line": 1,
   "end_line": 5,
   "content": "# RDS Failover Runbook\n\n## Symptoms\n- High latency...",
+  "tokens": 87,
   "section_header": "RDS Failover Runbook",
-  "chunk_type": "header"
+  "chunk_type": "header",
+  "overlap_with_previous": false
 }
 ```
 
@@ -156,10 +176,13 @@ Check CloudWatch metrics:
 ```json
 {
   "chunk_id": "b7c2d1...",
+  "document_id": "d4e5f6...",
+  "document_version": "1.0.0",
   "source_file": "runbooks/rds-failover.md",
   "start_line": 5,
   "end_line": 10,
   "content": "## Diagnosis\nCheck CloudWatch metrics...",
+  "tokens": 92,
   "section_header": "Diagnosis",
   "chunk_type": "header",
   "overlap_with_previous": true
@@ -206,10 +229,92 @@ Check CloudWatch metrics:
 **Decision:** Use LangChain MarkdownTextSplitter with deterministic configuration.
 
 ### Chunk ID Generation
-**SHA256(source_file + start_line + content)**
+**SHA256(document_id + start_line + content)**
 - Content-addressable (same content → same ID)
 - Collision-resistant
 - Reproducible
+- Tied to Phase 7.1 document identity (not git SHA)
+
+---
+
+## Deterministic Dependency Constraints
+
+### LangChain Version Pinning (REQUIRED)
+
+**Problem:** LangChain does not guarantee stable splitting logic across releases.
+
+**Constraints:**
+1. **LangChain version MUST be pinned** (exact version, no caret)
+   - Example: `"langchain": "0.1.0"` (NOT `"^0.1.0"`)
+2. **Chunking logic MUST be wrapped in a thin adapter**
+   - Adapter owns split logic and configuration
+   - Only Markdown parsing is delegated to LangChain
+3. **Any LangChain upgrade requires re-approval of Phase 7.2**
+   - Upgrade triggers determinism re-validation
+   - All existing chunks must produce same IDs after upgrade
+   - If IDs change, upgrade is rejected
+
+**Rationale:**
+- Same as tokenizer pinning in Phase 7.1
+- Prevents non-determinism from dependency updates
+- Ensures reproducible chunking across environments
+- Enables long-term replay guarantee
+
+**Example Adapter:**
+```python
+# chunking_adapter.py
+from langchain.text_splitter import MarkdownTextSplitter
+
+# Pin exact version in requirements.txt:
+# langchain==0.1.0
+
+class DeterministicChunker:
+    """
+    Thin adapter around LangChain MarkdownTextSplitter.
+    Owns split logic and configuration.
+    """
+    def __init__(self, config):
+        self.config = config
+        self.splitter = MarkdownTextSplitter(
+            chunk_size=config["chunk_size"],
+            chunk_overlap=config["chunk_overlap"],
+            length_function=config["length_function"],
+            separators=config["separators"],
+            keep_separator=config["keep_separator"],
+        )
+    
+    def chunk_document(self, document):
+        # Delegate parsing to LangChain
+        raw_chunks = self.splitter.split_text(document.content)
+        
+        # Own the chunk metadata generation
+        return [
+            self._create_chunk(document, chunk, index)
+            for index, chunk in enumerate(raw_chunks)
+        ]
+    
+    def _create_chunk(self, document, content, index):
+        # Compute deterministic chunk ID
+        chunk_id = compute_chunk_id(
+            document.documentId,
+            start_line,
+            content
+        )
+        
+        return {
+            "chunk_id": chunk_id,
+            "document_id": document.documentId,
+            "document_version": document.version,
+            "source_file": document.title,
+            "content": content,
+            # ... other metadata
+        }
+```
+
+**Validation:**
+- Before any LangChain upgrade, run determinism tests
+- Compare chunk IDs before and after upgrade
+- If any ID changes, reject upgrade or re-chunk all documents
 
 ---
 
@@ -218,8 +323,8 @@ Check CloudWatch metrics:
 ### JSONL Output (for Bedrock Knowledge Base)
 
 ```jsonl
-{"chunk_id":"a3f5e8...","source_file":"runbooks/rds-failover.md","start_line":1,"end_line":5,"content":"# RDS Failover Runbook\n\n## Symptoms...","section_header":"RDS Failover Runbook","chunk_type":"header","tokens":87}
-{"chunk_id":"b7c2d1...","source_file":"runbooks/rds-failover.md","start_line":5,"end_line":10,"content":"## Diagnosis\nCheck CloudWatch metrics...","section_header":"Diagnosis","chunk_type":"header","tokens":92,"overlap_with_previous":true}
+{"chunk_id":"a3f5e8...","document_id":"d4e5f6...","document_version":"1.0.0","source_file":"runbooks/rds-failover.md","start_line":1,"end_line":5,"content":"# RDS Failover Runbook\n\n## Symptoms...","section_header":"RDS Failover Runbook","chunk_type":"header","tokens":87,"overlap_with_previous":false}
+{"chunk_id":"b7c2d1...","document_id":"d4e5f6...","document_version":"1.0.0","source_file":"runbooks/rds-failover.md","start_line":5,"end_line":10,"content":"## Diagnosis\nCheck CloudWatch metrics...","section_header":"Diagnosis","chunk_type":"header","tokens":92,"overlap_with_previous":true}
 ```
 
 ### S3 Structure
@@ -375,11 +480,22 @@ CHUNKING_CONFIG = {
 
 ---
 
-**STATUS:** AWAITING APPROVAL  
-**IMPLEMENTATION:** BLOCKED UNTIL APPROVED
+**STATUS:** ✅ APPROVED (Required Changes Applied)  
+**IMPLEMENTATION:** 🟢 READY TO PROCEED  
+**APPROVER:** Principal Architect  
+**APPROVAL DATE:** January 27, 2026
+
+**REQUIRED CHANGES APPLIED:**
+- ✅ Removed `created_at` from chunk schema (determinism violation fixed)
+- ✅ Replaced `source_version` (git SHA) with `document_id` + `document_version` (authoritative)
+- ✅ Added deterministic dependency constraints for LangChain (version pinning + adapter pattern)
+- ✅ Clarified overlap semantics (semantic boundaries take precedence)
+
+**NEXT ACTION:** Proceed with implementation
 
 ---
 
 **Created:** January 26, 2026  
+**Updated:** January 27, 2026  
 **Authority:** Principal Architect  
 **Next Phase:** Phase 7.3 (Bedrock Knowledge Base Deployment)
