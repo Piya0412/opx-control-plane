@@ -15,7 +15,8 @@
     "deploy": "cdk deploy",
     "bootstrap": "cdk bootstrap",
     "diff": "cdk diff",
-    "destroy": "cdk destroy"
+    "destroy": "cdk destroy",
+    "ingest-document": "node --loader ts-node/esm scripts/ingest-document.ts"
   },
   "keywords": [
     "control-plane",
