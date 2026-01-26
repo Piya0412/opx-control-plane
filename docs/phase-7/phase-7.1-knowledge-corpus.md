@@ -40,6 +40,45 @@ Each document must have:
 - **Author:** Human identifier (e.g., "sre-team")
 - **Tags:** Array of strings (e.g., ["lambda", "timeout", "sev2"])
 
+#### Canonicalization Rules (REQUIRED)
+
+Before computing `documentId`, the following canonicalization **MUST** be applied:
+
+1. **UTF-8 encoding only** - All text must be UTF-8 encoded
+2. **Normalize line endings to `\n`** - Convert CRLF (`\r\n`) and CR (`\r`) to LF (`\n`)
+3. **Trim trailing whitespace on each line** - Remove spaces/tabs at end of lines
+4. **Remove trailing newline at end of file** - Ensure consistent file termination
+5. **Use raw Markdown source** - No rendering, no HTML conversion
+6. **Concatenate as:** `${title}||${version}||${content}`
+
+**Example Canonicalization:**
+```typescript
+function canonicalizeDocument(title: string, version: string, content: string): string {
+  // Normalize line endings
+  const normalizedContent = content
+    .replace(/\r\n/g, '\n')  // CRLF → LF
+    .replace(/\r/g, '\n')    // CR → LF
+    .split('\n')
+    .map(line => line.trimEnd())  // Trim trailing whitespace
+    .join('\n')
+    .replace(/\n+$/, '');  // Remove trailing newlines
+  
+  // Concatenate with delimiter
+  return `${title}||${version}||${normalizedContent}`;
+}
+
+function computeDocumentId(title: string, version: string, content: string): string {
+  const canonical = canonicalizeDocument(title, version, content);
+  return crypto.createHash('sha256').update(canonical, 'utf8').digest('hex');
+}
+```
+
+**Why This Matters:**
+- Guarantees the same document always produces the same `documentId` across environments
+- Prevents hash mismatches due to OS differences (Windows vs Linux line endings)
+- Ensures deterministic replay (same document → same ID → same chunks → same embeddings)
+- Enables cross-machine verification (CI/CD, local dev, production)
+
 **Example:**
 ```json
 {
@@ -72,6 +111,50 @@ Each document must have:
 **Version Comparison:**
 - Agents always query **active versions only**
 - Replay uses **version at time of incident** (deterministic)
+
+#### Metadata Mutability Rules
+
+The following fields are **IMMUTABLE** after ingestion:
+- `documentId` - Never changes (content-addressable)
+- `title` - Never changes (part of document ID)
+- `type` - Never changes (structural property)
+- `version` - Never changes (part of document ID)
+- `content` - Never changes (part of document ID)
+- `createdAt` - Never changes (audit trail)
+- `author` - Never changes (attribution)
+
+The following fields **MAY change**:
+- `status` - Can transition: `ACTIVE` → `DEPRECATED` → `ARCHIVED`
+- `tags` - Can be added (additive only, no removals)
+- `lastUpdated` - Updated when metadata changes
+
+**Metadata Change Constraints:**
+- Metadata changes **MUST NOT affect:**
+  - `documentId` (remains stable)
+  - Chunking (chunks are tied to document version)
+  - Embeddings (embeddings are tied to chunks)
+  - Replay determinism (same incident → same knowledge)
+
+**Example Metadata Change:**
+```typescript
+// ALLOWED: Status transition
+await documentStore.updateStatus(documentId, 'DEPRECATED');
+
+// ALLOWED: Add tag
+await documentStore.addTag(documentId, 'legacy');
+
+// FORBIDDEN: Change content (creates new version instead)
+// await documentStore.updateContent(documentId, newContent); // ❌ NOT ALLOWED
+
+// FORBIDDEN: Remove tag (breaks audit trail)
+// await documentStore.removeTag(documentId, 'sev2'); // ❌ NOT ALLOWED
+```
+
+**Why This Matters:**
+- Prevents accidental content changes that break determinism
+- Ensures replay uses exact same knowledge as original incident
+- Maintains audit trail (who created what, when)
+- Allows operational metadata updates (status, tags) without breaking replay
 
 ### 4. Document Storage
 
@@ -192,7 +275,14 @@ export type Document = z.infer<typeof DocumentSchema>;
 
 ---
 
-**STATUS:** 📋 AWAITING APPROVAL  
-**IMPLEMENTATION:** ❌ BLOCKED UNTIL APPROVED  
+**STATUS:** ✅ APPROVED (Conditions Met)  
+**IMPLEMENTATION:** 🟢 READY TO PROCEED  
 **APPROVER:** Principal Architect  
-**NEXT ACTION:** Review and approve this design before implementation
+**APPROVAL DATE:** January 27, 2026  
+**CONDITIONS MET:**
+- ✅ Canonicalization rules added (deterministic document IDs)
+- ✅ Metadata mutability rules clarified (immutable vs mutable fields)
+- ✅ Cross-machine determinism guaranteed
+- ✅ Replay determinism preserved
+
+**NEXT ACTION:** Proceed with implementation
