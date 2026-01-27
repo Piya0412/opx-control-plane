@@ -31,6 +31,8 @@ import { AgentAlerts } from '../constructs/agent-alerts.js';
 import { BedrockAgentIamRoles } from '../constructs/bedrock-agent-iam-roles.js';
 import { BedrockActionGroups } from '../constructs/bedrock-action-groups.js';
 import { BedrockAgents } from '../constructs/bedrock-agents.js';
+import { KnowledgeCorpusBucket } from '../constructs/knowledge-corpus-bucket.js';
+import { BedrockKnowledgeBase } from '../constructs/bedrock-knowledge-base.js';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -799,18 +801,43 @@ export class OpxControlPlaneStack extends cdk.Stack {
     // ========================================
     // Phase 6 Week 3: Bedrock Agents
     // ========================================
+    // NOTE: Phase 6 agents are deployed in OpxPhase6Stack (separate deployment)
+    // Commenting out to avoid resource conflicts during Phase 7.3 deployment
 
-    // IAM Roles: Bedrock Agent Execution Role
-    const bedrockAgentIamRoles = new BedrockAgentIamRoles(this, 'BedrockAgentIamRoles');
+    // // IAM Roles: Bedrock Agent Execution Role
+    // const bedrockAgentIamRoles = new BedrockAgentIamRoles(this, 'BedrockAgentIamRoles');
 
-    // Action Groups: Lambda functions backing Bedrock Agent tools (9 stubs)
-    const bedrockActionGroups = new BedrockActionGroups(this, 'BedrockActionGroups');
+    // // Action Groups: Lambda functions backing Bedrock Agent tools (9 stubs)
+    // const bedrockActionGroups = new BedrockActionGroups(this, 'BedrockActionGroups');
 
-    // Bedrock Agents: 6 agents with action groups and aliases
-    const bedrockAgents = new BedrockAgents(this, 'BedrockAgents', {
-      executionRole: bedrockAgentIamRoles.bedrockAgentRole,
-      actionGroups: bedrockActionGroups,
+    // // Bedrock Agents: 6 agents with action groups and aliases
+    // new BedrockAgents(this, 'BedrockAgents', {
+    //   executionRole: bedrockAgentIamRoles.bedrockAgentRole,
+    //   actionGroups: bedrockActionGroups,
+    // });
+
+    // ========================================
+    // Phase 7: Knowledge Base Infrastructure
+    // ========================================
+
+    // S3 Bucket: Knowledge Corpus (Phase 7.1)
+    const knowledgeCorpusBucket = new KnowledgeCorpusBucket(this, 'KnowledgeCorpusBucket', {
+      bucketName: 'opx-knowledge-corpus',
+      versioned: true,
     });
+
+    // Bedrock Knowledge Base with OpenSearch Serverless (Phase 7.3)
+    const bedrockKnowledgeBase = new BedrockKnowledgeBase(this, 'BedrockKnowledgeBase', {
+      corpusBucket: knowledgeCorpusBucket.bucket,
+      knowledgeBaseName: 'opx-knowledge-base',
+      collectionName: 'opx-knowledge',
+      vectorIndexName: 'opx-knowledge-index',
+    });
+
+    // Grant Knowledge RAG Agent read-only access to Knowledge Base
+    // NOTE: Temporarily commented out - will grant permissions to Phase 6 agent role after deployment
+    // bedrockKnowledgeBase.grantRetrieve(bedrockAgentIamRoles.bedrockAgentRole);
+    // bedrockKnowledgeBase.denyIngestion(bedrockAgentIamRoles.bedrockAgentRole);
 
     // ========================================
     // API Gateway: Human Interface
@@ -1050,6 +1077,42 @@ export class OpxControlPlaneStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'AgentAlertTopics', {
       value: `Failures: ${agentAlerts.failureTopic.topicArn}, Budget: ${agentAlerts.budgetTopic.topicArn}, Quality: ${agentAlerts.qualityTopic.topicArn}`,
       description: 'SNS topics for agent alerts (Phase 6 Step 4)',
+    });
+
+    // Phase 7 Outputs
+    new cdk.CfnOutput(this, 'KnowledgeCorpusBucketName', {
+      value: knowledgeCorpusBucket.bucket.bucketName,
+      description: 'S3 bucket for knowledge corpus (Phase 7.1)',
+    });
+
+    new cdk.CfnOutput(this, 'KnowledgeBaseId', {
+      value: bedrockKnowledgeBase.knowledgeBaseId,
+      description: 'Bedrock Knowledge Base ID (Phase 7.3)',
+    });
+
+    new cdk.CfnOutput(this, 'KnowledgeBaseArn', {
+      value: bedrockKnowledgeBase.knowledgeBase.attrKnowledgeBaseArn,
+      description: 'Bedrock Knowledge Base ARN (Phase 7.3)',
+    });
+
+    new cdk.CfnOutput(this, 'OpenSearchCollectionEndpoint', {
+      value: bedrockKnowledgeBase.collection.attrCollectionEndpoint,
+      description: 'OpenSearch Serverless collection endpoint (Phase 7.3)',
+    });
+
+    new cdk.CfnOutput(this, 'KnowledgeBaseDataSourceId', {
+      value: bedrockKnowledgeBase.dataSource.attrDataSourceId,
+      description: 'Bedrock Knowledge Base data source ID (Phase 7.3)',
+    });
+
+    new cdk.CfnOutput(this, 'KnowledgeBaseIngestionRoleArn', {
+      value: bedrockKnowledgeBase.ingestionRole.roleArn,
+      description: 'Bedrock Knowledge Base ingestion role ARN (Phase 7.3)',
+    });
+
+    new cdk.CfnOutput(this, 'KnowledgeBaseRuntimeRoleArn', {
+      value: bedrockKnowledgeBase.runtimeRole.roleArn,
+      description: 'Bedrock Knowledge Base runtime role ARN (Phase 7.3)',
     });
   }
 }

@@ -24,9 +24,9 @@ Knowledge Corpus (Git)
   ↓ (manual ingestion)
 Chunking Pipeline (Phase 7.2)
   ↓ (JSONL output)
-S3 Bucket (opx-knowledge-base)
+S3 Bucket (opx-knowledge-corpus)
   ↓ (sync trigger)
-Bedrock Knowledge Base
+Bedrock Knowledge Base (opx-knowledge-base)
   ↓ (embedding)
 Titan Embeddings Model
   ↓ (vector storage)
@@ -47,7 +47,7 @@ Advisory Recommendations
 
 **Structure:**
 ```
-s3://opx-knowledge-base/
+s3://opx-knowledge-corpus/
 ├── chunks/
 │   ├── runbooks/
 │   │   ├── rds-failover.jsonl
@@ -59,6 +59,11 @@ s3://opx-knowledge-base/
 └── metadata/
     └── ingestion-manifest.json
 ```
+
+**Naming Rationale:**
+- S3 bucket: `opx-knowledge-corpus` (raw truth, source of record)
+- Knowledge Base: `opx-knowledge-base` (embedded view, search index)
+- This prevents operational confusion in logs, metrics, and IAM policies
 
 **Configuration:**
 - Versioning: Enabled (for rollback)
@@ -75,7 +80,7 @@ s3://opx-knowledge-base/
 {
   name: "opx-knowledge-base",
   description: "Runbooks and postmortems for incident resolution",
-  roleArn: "arn:aws:iam::ACCOUNT:role/BedrockKnowledgeBaseRole",
+  roleArn: "arn:aws:iam::ACCOUNT:role/BedrockKnowledgeBaseRuntimeRole",
   knowledgeBaseConfiguration: {
     type: "VECTOR",
     vectorKnowledgeBaseConfiguration: {
@@ -97,6 +102,10 @@ s3://opx-knowledge-base/
 }
 ```
 
+**Role Usage:**
+- Knowledge Base uses `BedrockKnowledgeBaseRuntimeRole` for retrieval (read-only)
+- Data Source uses `BedrockKnowledgeBaseIngestionRole` for ingestion (write access)
+
 ### 3. OpenSearch Serverless Collection
 
 **Purpose:** Vector storage and similarity search
@@ -113,15 +122,37 @@ s3://opx-knowledge-base/
   networkPolicy: {
     type: "VPC",
     vpcEndpoints: ["vpce-..."]  // Private access only
-  },
-  dataAccessPolicy: {
-    principals: [
-      "arn:aws:iam::ACCOUNT:role/BedrockKnowledgeBaseRole"
-    ],
-    permissions: ["aoss:ReadDocument", "aoss:WriteDocument"]
   }
 }
 ```
+
+**Data Access Policies (Fail-Closed):**
+
+**Ingestion Role (Write Access):**
+```json
+{
+  "principals": [
+    "arn:aws:iam::ACCOUNT:role/BedrockKnowledgeBaseIngestionRole"
+  ],
+  "permissions": ["aoss:APIAccessAll"]
+}
+```
+
+**Runtime Role (Read-Only):**
+```json
+{
+  "principals": [
+    "arn:aws:iam::ACCOUNT:role/BedrockKnowledgeBaseRuntimeRole"
+  ],
+  "permissions": ["aoss:ReadDocument"]
+}
+```
+
+**Security Rationale:**
+- Ingestion role has write access ONLY during ingestion jobs
+- Runtime role (used by agents) has read-only access
+- No role has both read and write permissions
+- Prevents unintended mutations during retrieval
 
 **Index Mapping:**
 ```json
@@ -190,7 +221,7 @@ s3://opx-knowledge-base/
   dataSourceConfiguration: {
     type: "S3",
     s3Configuration: {
-      bucketArn: "arn:aws:s3:::opx-knowledge-base",
+      bucketArn: "arn:aws:s3:::opx-knowledge-corpus",
       inclusionPrefixes: ["chunks/"]
     }
   },
@@ -212,9 +243,9 @@ s3://opx-knowledge-base/
 
 ## IAM Roles & Permissions
 
-### Bedrock Knowledge Base Role
+### Bedrock Knowledge Base Ingestion Role
 
-**Purpose:** Allow Bedrock to read S3 and write to OpenSearch
+**Purpose:** Allow Bedrock to read S3 and write to OpenSearch during ingestion
 
 ```json
 {
@@ -227,14 +258,40 @@ s3://opx-knowledge-base/
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::opx-knowledge-base",
-        "arn:aws:s3:::opx-knowledge-base/*"
+        "arn:aws:s3:::opx-knowledge-corpus",
+        "arn:aws:s3:::opx-knowledge-corpus/*"
       ]
     },
     {
       "Effect": "Allow",
       "Action": [
         "aoss:APIAccessAll"
+      ],
+      "Resource": "arn:aws:aoss:REGION:ACCOUNT:collection/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel"
+      ],
+      "Resource": "arn:aws:bedrock:REGION::foundation-model/amazon.titan-embed-text-v1"
+    }
+  ]
+}
+```
+
+### Bedrock Knowledge Base Runtime Role
+
+**Purpose:** Allow Bedrock to read from OpenSearch during retrieval (read-only)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "aoss:ReadDocument"
       ],
       "Resource": "arn:aws:aoss:REGION:ACCOUNT:collection/*"
     },
@@ -278,6 +335,12 @@ s3://opx-knowledge-base/
 }
 ```
 
+**Security Boundaries:**
+- Ingestion role: Write access to OpenSearch (used only during ingestion jobs)
+- Runtime role: Read-only access to OpenSearch (used during retrieval)
+- Agent role: Can only retrieve, cannot ingest or mutate
+- No role has both read and write permissions to OpenSearch
+
 ---
 
 ## Ingestion Process
@@ -292,7 +355,7 @@ python scripts/chunk-knowledge-corpus.py \
 
 ### Step 2: Upload to S3
 ```bash
-aws s3 sync chunks/ s3://opx-knowledge-base/chunks/ \
+aws s3 sync chunks/ s3://opx-knowledge-corpus/chunks/ \
   --delete \
   --metadata ingestion_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 ```
@@ -332,11 +395,18 @@ aws bedrock-agent-runtime retrieve \
   retrievalQuery: "How to diagnose high RDS latency?",
   retrievalConfiguration: {
     vectorSearchConfiguration: {
-      numberOfResults: 5,           // Top-K results
-      overrideSearchType: "HYBRID"  // Vector + keyword search
+      numberOfResults: 5,              // Top-K results
+      overrideSearchType: "VECTOR"     // Vector-only search (deterministic)
     }
   }
 }
+```
+
+**Search Type Rationale:**
+- **VECTOR-only** search chosen for determinism
+- Hybrid search introduces keyword scoring variance across versions
+- Vector embeddings provide sufficient semantic matching
+- If retrieval quality is insufficient, we can re-evaluate with explicit justification
 ```
 
 ### Response Format
@@ -351,7 +421,7 @@ aws bedrock-agent-runtime retrieve \
       "location": {
         "type": "S3",
         "s3Location": {
-          "uri": "s3://opx-knowledge-base/chunks/runbooks/rds-failover.jsonl"
+          "uri": "s3://opx-knowledge-corpus/chunks/runbooks/rds-failover.jsonl"
         }
       },
       "score": 0.87,
@@ -478,10 +548,10 @@ aws bedrock-agent-runtime retrieve \
 ## Deliverables
 
 1. **CDK construct** (`infra/constructs/bedrock-knowledge-base.ts`)
-2. **S3 bucket** (opx-knowledge-base)
+2. **S3 bucket** (opx-knowledge-corpus)
 3. **OpenSearch collection** (opx-knowledge)
 4. **Bedrock Knowledge Base** (opx-knowledge-base)
-5. **IAM roles** (BedrockKnowledgeBaseRole, KnowledgeRAGAgentRole)
+5. **IAM roles** (BedrockKnowledgeBaseIngestionRole, BedrockKnowledgeBaseRuntimeRole, KnowledgeRAGAgentRole)
 6. **Ingestion script** (`scripts/ingest-knowledge-base.sh`)
 7. **Validation tests** (retrieval quality, citation accuracy)
 
@@ -513,11 +583,17 @@ aws bedrock-agent-runtime retrieve \
 
 ---
 
-**STATUS:** AWAITING APPROVAL  
+**STATUS:** ✅ CHANGES APPLIED - READY FOR APPROVAL  
 **IMPLEMENTATION:** BLOCKED UNTIL APPROVED
+
+**Changes Applied:**
+1. ✅ Split OpenSearch data access into ingestion (write) and runtime (read-only) roles
+2. ✅ Renamed S3 bucket from `opx-knowledge-base` to `opx-knowledge-corpus` (prevents naming collision)
+3. ✅ Changed search type from HYBRID to VECTOR (deterministic, no keyword scoring variance)
 
 ---
 
 **Created:** January 26, 2026  
+**Updated:** January 27, 2026  
 **Authority:** Principal Architect  
 **Next Phase:** Phase 7.4 (Agent Integration)
