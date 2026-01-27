@@ -73,3 +73,18 @@ archive/
 
 # Examples (keep in repo)
 !examples/**
+
+# Bedrock KB / local ops artifacts
+chunks/
+chunks-bedrock/
+*.zip
+out.json
+retrieve-test.json
+create-datasource.json
+update-datasource.json
+ingestion-policy.json
+infra/phase7/
+scripts/
+knowledge/**/*.meta.json
+BEDROCK_KB_FIX_COMPLETE.md
+SYNC_COMPLETE.md
