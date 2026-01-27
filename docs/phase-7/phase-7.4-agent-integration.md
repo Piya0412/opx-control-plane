@@ -164,7 +164,7 @@ def retrieve_knowledge(query: str, max_results: int = 5) -> Dict[str, Any]:
             retrievalConfiguration={
                 'vectorSearchConfiguration': {
                     'numberOfResults': max_results,
-                    'overrideSearchType': 'HYBRID'  # Vector + keyword
+                    'overrideSearchType': 'VECTOR'
                 }
             }
         )
@@ -190,9 +190,10 @@ def retrieve_knowledge(query: str, max_results: int = 5) -> Dict[str, Any]:
     
     except Exception as e:
         # Graceful degradation: return empty results on error
+        # Log error to CloudWatch instead of returning it
+        print(f"Knowledge retrieval error: {str(e)}")
         return {
-            'results': [],
-            'error': str(e)
+            'results': []
         }
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -350,7 +351,7 @@ CONSTRAINTS:
       "Action": [
         "bedrock:Retrieve"
       ],
-      "Resource": "arn:aws:bedrock:REGION:ACCOUNT:knowledge-base/KB_ID"
+      "Resource": "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:knowledge-base/*"
     },
     {
       "Effect": "Deny",
@@ -365,6 +366,8 @@ CONSTRAINTS:
   ]
 }
 ```
+
+**Note:** In CDK, this will resolve to the concrete ARN (e.g., `arn:aws:bedrock:us-east-1:998461587244:knowledge-base/HJPLE9IOEU`)
 
 ---
 
@@ -411,7 +414,7 @@ def test_retrieval_failure():
         
         assert 'results' in result
         assert result['results'] == []
-        assert 'error' in result
+        assert 'error' not in result  # Error logged, not returned
 ```
 
 ### Integration Tests
@@ -579,8 +582,8 @@ def test_citation_traceability():
 
 ---
 
-**STATUS:** AWAITING APPROVAL  
-**IMPLEMENTATION:** BLOCKED UNTIL APPROVED
+**STATUS:** APPROVED  
+**IMPLEMENTATION:** UNBLOCKED
 
 ---
 

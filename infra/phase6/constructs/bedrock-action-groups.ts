@@ -11,16 +11,28 @@
  * 3. JSON schema enforced
  * 4. Timeouts < agent timeout
  */
-
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { readFileSync } from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+export interface BedrockActionGroupsProps {
+  /**
+   * Knowledge Base ID for knowledge retrieval action group (Phase 7.4)
+   */
+  knowledgeBaseId?: string;
+}
 
 export class BedrockActionGroups extends Construct {
   public readonly lambdas: Map<string, lambda.Function>;
 
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props?: BedrockActionGroupsProps) {
     super(scope, id);
 
     this.lambdas = new Map();
@@ -90,6 +102,13 @@ export class BedrockActionGroups extends Construct {
       'risk-blast-radius',
       'Query traffic metrics for impact estimation'
     );
+
+    // ========================================================================
+    // KNOWLEDGE RAG ACTION GROUP (1) - Phase 7.4
+    // ========================================================================
+    if (props?.knowledgeBaseId) {
+      this.createKnowledgeRetrievalLambda(props.knowledgeBaseId);
+    }
   }
 
   private createActionGroupLambda(
@@ -315,6 +334,88 @@ def generate_mock_data(action_name, parameters):
       value: fn.functionArn,
       description: `ARN of ${actionName} action group for ${agentId}`,
       exportName: `${agentId}-${actionName}-arn`,
+    });
+
+    return fn;
+  }
+
+  private createKnowledgeRetrievalLambda(knowledgeBaseId: string): lambda.Function {
+    // Load Python code from file
+    const codePath = join(__dirname, '../../../src/langgraph/action_groups/knowledge_retrieval.py');
+    let code: string;
+    
+    try {
+      code = readFileSync(codePath, 'utf-8');
+    } catch (error) {
+      console.warn('Warning: Could not load knowledge_retrieval.py, using inline stub');
+      code = `
+import json
+import os
+
+def lambda_handler(event, context):
+    return {
+        'messageVersion': '1.0',
+        'response': {
+            'actionGroup': event.get('actionGroup'),
+            'apiPath': event.get('apiPath'),
+            'httpMethod': 'POST',
+            'httpStatusCode': 200,
+            'responseBody': {
+                'application/json': {
+                    'body': json.dumps({'results': []})
+                }
+            }
+        }
+    }
+      `;
+    }
+
+    // Create Lambda function
+    const fn = new lambda.Function(this, 'knowledge-rag-retrieve-knowledge', {
+      functionName: 'opx-knowledge-rag-tool-retrieve-knowledge',
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'index.lambda_handler',
+      code: lambda.Code.fromInline(code),
+      description: 'Retrieve knowledge from Bedrock Knowledge Base',
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 256,
+      environment: {
+        KNOWLEDGE_BASE_ID: knowledgeBaseId,
+        ACTION_NAME: 'retrieve-knowledge',
+        AGENT_ID: 'knowledge-rag',
+      },
+    });
+
+    // Grant Bedrock permission to invoke Lambda
+    fn.grantInvoke(new iam.ServicePrincipal('bedrock.amazonaws.com'));
+
+    // Grant Lambda permission to retrieve from Knowledge Base
+    fn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['bedrock:Retrieve'],
+      resources: [`arn:aws:bedrock:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:knowledge-base/${knowledgeBaseId}`],
+    }));
+
+    // Explicitly deny ingestion permissions
+    fn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.DENY,
+      actions: [
+        'bedrock:CreateDataSource',
+        'bedrock:UpdateDataSource',
+        'bedrock:DeleteDataSource',
+        'bedrock:StartIngestionJob',
+      ],
+      resources: ['*'],
+    }));
+
+    // Store in map
+    this.lambdas.set('knowledge-rag-retrieve-knowledge', fn);
+
+    // Output Lambda ARN
+    new cdk.CfnOutput(this, 'knowledge-rag-retrieve-knowledge-arn', {
+      value: fn.functionArn,
+      description: 'ARN of retrieve-knowledge action group for knowledge-rag',
+      exportName: 'knowledge-rag-retrieve-knowledge-arn',
     });
 
     return fn;

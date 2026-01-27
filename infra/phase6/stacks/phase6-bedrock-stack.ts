@@ -42,8 +42,13 @@ export class Phase6BedrockStack extends cdk.Stack {
     // IAM Execution Role (least-privilege, read-only)
     const iamRoles = new BedrockAgentIamRoles(this, 'BedrockAgentIamRoles');
 
-    // Action Groups (9 Lambda stubs)
-    const actionGroups = new BedrockActionGroups(this, 'BedrockActionGroups');
+    // Import Knowledge Base ID from main stack (Phase 7.3)
+    const knowledgeBaseId = cdk.Fn.importValue('BedrockKnowledgeBaseId');
+
+    // Action Groups (9 Lambda stubs + 1 knowledge retrieval)
+    const actionGroups = new BedrockActionGroups(this, 'BedrockActionGroups', {
+      knowledgeBaseId: knowledgeBaseId,
+    });
 
     // Bedrock Agents (6 agents with aliases)
     const agents = new BedrockAgents(this, 'BedrockAgents', {

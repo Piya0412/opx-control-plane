@@ -78,7 +78,9 @@ export class BedrockAgents extends Construct {
       {
         id: 'knowledge-rag',
         description: 'Search runbooks, postmortems, documentation',
-        actionGroups: [], // Knowledge Base in Phase 7
+        actionGroups: [
+          { name: 'retrieve-knowledge', description: 'Retrieve knowledge from Knowledge Base' },
+        ],
       },
       {
         id: 'response-strategy',

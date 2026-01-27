@@ -1,8 +1,10 @@
 # Phase 6 Week 2: LangGraph Dependencies
+# Phase 7.2: LangChain version PINNED for deterministic chunking
+# CRITICAL: Any LangChain upgrade requires re-approval of Phase 7.2
 
 # LangGraph and LangChain
 langgraph==0.2.45
-langchain==0.3.7
+langchain==0.3.7  # PINNED - DO NOT UPGRADE without Phase 7.2 re-approval
 langchain-aws==0.2.6
 
 # AWS SDK
