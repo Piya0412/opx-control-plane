@@ -11,11 +11,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { mockClient } from 'aws-sdk-client-mock';
+import { dynamoDocMock as dynamoMock, getMockCredentials, getMockRegion } from '../setup/aws-mock.js';
 import { CorrelationRuleStore } from '../../src/correlation/correlation-rule-store.js';
 import type { CorrelationRule } from '../../src/correlation/correlation-rule.schema.js';
-
-const dynamoMock = mockClient(DynamoDBDocumentClient);
 
 describe('CorrelationRuleStore', () => {
   let store: CorrelationRuleStore;
@@ -57,11 +55,8 @@ describe('CorrelationRuleStore', () => {
     dynamoMock.reset();
     store = new CorrelationRuleStore(
       new DynamoDBClient({
-        region: 'us-east-1',
-        credentials: {
-          accessKeyId: 'test',
-          secretAccessKey: 'test',
-        },
+        region: getMockRegion(),
+        credentials: getMockCredentials(),
       }),
       'opx-correlation-rules'
     );

@@ -5,26 +5,21 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { mockClient } from 'aws-sdk-client-mock';
+import { dynamoDocMock as dynamoMock, getMockCredentials, getMockRegion } from '../setup/aws-mock.js';
 import { AutomationAuditStore } from '../../src/automation/automation-audit-store';
 import { computeAuditId } from '../../src/automation/audit-id';
 import type { AutomationAudit } from '../../src/automation/automation-audit.schema';
-
-const dynamoMock = mockClient(DynamoDBDocumentClient);
 
 describe('AutomationAuditStore', () => {
   let store: AutomationAuditStore;
   const tableName = 'test-automation-audit';
 
   beforeEach(() => {
-    dynamoMock.reset();
+    // Note: dynamoMock.reset() is called globally in setup/aws-mock.ts
     store = new AutomationAuditStore(
       new DynamoDBClient({
-        region: 'us-east-1',
-        credentials: {
-          accessKeyId: 'test',
-          secretAccessKey: 'test',
-        },
+        region: getMockRegion(),
+        credentials: getMockCredentials(),
       }),
       tableName
     );

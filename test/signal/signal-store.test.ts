@@ -7,11 +7,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { mockClient } from 'aws-sdk-client-mock';
+import { dynamoDocMock as dynamoMock, getMockCredentials, getMockRegion } from '../setup/aws-mock.js';
 import { SignalStore } from '../../src/signal/signal-store.js';
 import type { SignalEvent } from '../../src/signal/signal-event.schema.js';
-
-const dynamoMock = mockClient(DynamoDBDocumentClient);
 
 describe('SignalStore', () => {
   let store: SignalStore;
@@ -32,11 +30,8 @@ describe('SignalStore', () => {
     dynamoMock.reset();
     store = new SignalStore(
       new DynamoDBClient({
-        region: 'us-east-1',
-        credentials: {
-          accessKeyId: 'test',
-          secretAccessKey: 'test',
-        },
+        region: getMockRegion(),
+        credentials: getMockCredentials(),
       }),
       'opx-signals'
     );

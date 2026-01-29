@@ -9,10 +9,8 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RateLimiter } from '../../src/controller/rate-limiter.js';
-import { mockClient } from 'aws-sdk-client-mock';
+import { dynamoMock as ddbMock, getMockCredentials, getMockRegion } from '../setup/aws-mock.js';
 import { DynamoDBClient, GetItemCommand, PutItemCommand } from '@aws-sdk/client-dynamodb';
-
-const ddbMock = mockClient(DynamoDBClient);
 
 describe('CP-8: Rate Limiter', () => {
   let rateLimiter: RateLimiter;
@@ -22,11 +20,8 @@ describe('CP-8: Rate Limiter', () => {
     rateLimiter = new RateLimiter({
       tableName: 'test-rate-limits',
       client: new DynamoDBClient({
-        region: 'us-east-1',
-        credentials: {
-          accessKeyId: 'test',
-          secretAccessKey: 'test',
-        },
+        region: getMockRegion(),
+        credentials: getMockCredentials(),
       }),
     });
   });

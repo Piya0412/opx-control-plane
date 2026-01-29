@@ -6,15 +6,12 @@
 
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { mockClient } from 'aws-sdk-client-mock';
+import { dynamoMock, getMockCredentials, getMockRegion } from '../setup/aws-mock.js';
 import { EvidenceBuilder } from '../../src/evidence/evidence-builder.js';
 import { EvidenceStore } from '../../src/evidence/evidence-store.js';
 import { computeEvidenceId } from '../../src/evidence/evidence-id.js';
 import { computeSignalSummary } from '../../src/evidence/signal-summary.js';
 import type { DetectionSummary } from '../../src/evidence/evidence-bundle.schema.js';
-
-// Mock DynamoDB client for CI environment
-const dynamoMock = mockClient(DynamoDBClient);
 
 describe('Evidence Bundle Integration', () => {
   let evidenceStore: EvidenceStore;
@@ -26,21 +23,18 @@ describe('Evidence Bundle Integration', () => {
   const mockStore = new Map<string, any>();
   
   beforeAll(() => {
-    // Create DynamoDB client with mock credentials for CI environment
+    // Create DynamoDB client - uses global mock from setup
     const dynamoClient = new DynamoDBClient({
-      region: 'us-east-1',
-      credentials: {
-        accessKeyId: 'test',
-        secretAccessKey: 'test',
-      },
+      region: getMockRegion(),
+      credentials: getMockCredentials(),
     });
     evidenceStore = new EvidenceStore(dynamoClient, tableName);
     evidenceBuilder = new EvidenceBuilder();
   });
   
   beforeEach(() => {
-    // Reset mock and in-memory store before each test
-    dynamoMock.reset();
+    // Reset in-memory store before each test
+    // Note: dynamoMock.reset() is called globally in setup/aws-mock.ts
     mockStore.clear();
     
     // Mock PutItemCommand

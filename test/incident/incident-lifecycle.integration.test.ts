@@ -9,13 +9,10 @@ import { IncidentManager } from '../../src/incident/incident-manager';
 import { IncidentStore } from '../../src/incident/incident-store';
 import { IncidentStateMachine } from '../../src/incident/state-machine';
 import { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
-import { mockClient } from 'aws-sdk-client-mock';
+import { dynamoMock, getMockCredentials, getMockRegion } from '../setup/aws-mock.js';
 import type { Incident, Authority, TransitionMetadata } from '../../src/incident/incident.schema';
 import type { PromotionResult } from '../../src/promotion/promotion.schema';
 import type { EvidenceBundle } from '../../src/evidence/evidence-bundle.schema';
-
-// Mock DynamoDB client for CI environment
-const dynamoMock = mockClient(DynamoDBClient);
 
 describe('Phase 3.4: Incident Lifecycle Integration', () => {
   let incidentManager: IncidentManager;
@@ -24,19 +21,16 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
 
   const tableName = process.env.INCIDENTS_TABLE_NAME || 'opx-incidents';
   const client = new DynamoDBClient({
-    region: 'us-east-1',
-    credentials: {
-      accessKeyId: 'test',
-      secretAccessKey: 'test',
-    },
+    region: getMockRegion(),
+    credentials: getMockCredentials(),
   });
   
   // In-memory store for mocked DynamoDB operations
   const mockStore = new Map<string, any>();
 
   beforeEach(() => {
-    // Reset mock and in-memory store
-    dynamoMock.reset();
+    // Reset in-memory store
+    // Note: dynamoMock.reset() is called globally in setup/aws-mock.ts
     mockStore.clear();
     
     // Mock PutItemCommand

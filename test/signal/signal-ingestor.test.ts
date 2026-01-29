@@ -10,16 +10,12 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { EventBridgeClient, PutEventsCommand } from '@aws-sdk/client-eventbridge';
-import { mockClient } from 'aws-sdk-client-mock';
+import { dynamoDocMock as dynamoMock, eventBridgeMock } from '../setup/aws-mock.js';
 import type { SNSEvent } from 'aws-lambda';
 
 // Mock environment variables BEFORE importing handler
 process.env.SIGNALS_TABLE_NAME = 'opx-signals';
 process.env.EVENT_BUS_NAME = 'default';
-
-// Set up mocks BEFORE importing handler
-const dynamoMock = mockClient(DynamoDBDocumentClient);
-const eventBridgeMock = mockClient(EventBridgeClient);
 
 // Import handler after mocks and env are set up
 const { handler } = await import('../../src/signal/signal-ingestor.js');
