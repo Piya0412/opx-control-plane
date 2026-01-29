@@ -18,17 +18,19 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
   let incidentManager: IncidentManager;
   let incidentStore: IncidentStore;
   let stateMachine: IncidentStateMachine;
+  let client: DynamoDBClient;
 
   const tableName = process.env.INCIDENTS_TABLE_NAME || 'opx-incidents';
-  const client = new DynamoDBClient({
-    region: getMockRegion(),
-    credentials: getMockCredentials(),
-  });
   
   // In-memory store for mocked DynamoDB operations
   const mockStore = new Map<string, any>();
 
   beforeEach(() => {
+    // Create client in beforeEach to ensure mocks are set up first
+    client = new DynamoDBClient({
+      region: getMockRegion(),
+      credentials: getMockCredentials(),
+    });
     // Reset in-memory store
     // Note: dynamoMock.reset() is called globally in setup/aws-mock.ts
     mockStore.clear();

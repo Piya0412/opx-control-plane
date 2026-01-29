@@ -38,8 +38,12 @@ import {
   IdempotencyConflictError,
 } from '../domain/errors.js';
 
-const dynamodb = new DynamoDBClient({});
-const eventbridge = new EventBridgeClient({});
+const dynamodb = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const eventbridge = new EventBridgeClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 const TABLE_NAME = process.env.INCIDENTS_TABLE_NAME!;
 const EVENTS_TABLE_NAME = process.env.INCIDENT_EVENTS_TABLE_NAME!;

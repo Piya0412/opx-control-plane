@@ -40,8 +40,12 @@ const CANDIDATES_TABLE_NAME = process.env.CANDIDATES_TABLE_NAME!;
 const DETECTIONS_TABLE_NAME = process.env.DETECTIONS_TABLE_NAME || 'opx-detections';
 
 // AWS clients (singleton)
-const dynamoClient = new DynamoDBClient({});
-const eventBridgeClient = new EventBridgeClient({});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const eventBridgeClient = new EventBridgeClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 // Stores (singleton)
 const signalStore = new SignalStore(dynamoClient, SIGNALS_TABLE_NAME);

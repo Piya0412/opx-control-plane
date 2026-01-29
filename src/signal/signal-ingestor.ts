@@ -18,8 +18,12 @@ import type { SNSEvent } from 'aws-lambda';
 import { SignalStore } from './signal-store';
 import { SignalNormalizer, type CloudWatchAlarmEvent } from './signal-normalizer';
 
-const dynamoClient = new DynamoDBClient({});
-const eventBridgeClient = new EventBridgeClient({});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const eventBridgeClient = new EventBridgeClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 const signalStore = new SignalStore(
   dynamoClient,

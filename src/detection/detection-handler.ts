@@ -24,8 +24,12 @@ const EVENT_BUS_NAME = process.env.EVENT_BUS_NAME!;
 const RULES_PATH = path.join(__dirname, 'rules');
 
 // AWS clients
-const dynamoClient = new DynamoDBClient({});
-const eventBridgeClient = new EventBridgeClient({});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const eventBridgeClient = new EventBridgeClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 // Detection components
 const detectionStore = new DetectionStore({

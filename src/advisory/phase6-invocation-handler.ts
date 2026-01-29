@@ -18,8 +18,12 @@ import { IncidentStore } from '../incident/incident-store.js';
 import { EvidenceStore } from '../evidence/evidence-store.js';
 import { AdvisoryStore } from './advisory-store.js';
 
-const lambdaClient = new LambdaClient({});
-const dynamoClient = new DynamoDBClient({});
+const lambdaClient = new LambdaClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 const incidentStore = new IncidentStore(
   dynamoClient,

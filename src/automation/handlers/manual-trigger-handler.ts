@@ -35,8 +35,12 @@ const CALIBRATION_FUNCTION = process.env.CALIBRATION_FUNCTION!;
 const SNAPSHOT_FUNCTION = process.env.SNAPSHOT_FUNCTION!;
 
 // AWS clients
-const dynamoClient = new DynamoDBClient({});
-const lambdaClient = new LambdaClient({});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const lambdaClient = new LambdaClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 const rateLimiter = new RateLimiter(dynamoClient, CONFIG_TABLE_NAME);
 const auditStore = new AutomationAuditStore(dynamoClient, AUDIT_TABLE_NAME);
 

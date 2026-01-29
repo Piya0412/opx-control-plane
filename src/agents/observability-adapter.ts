@@ -12,8 +12,12 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { createHash } from 'crypto';
 
-const cloudwatch = new CloudWatchClient({});
-const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const cloudwatch = new CloudWatchClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+}));
 
 export interface MetricData {
   agentId: string;

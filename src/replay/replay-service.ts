@@ -19,7 +19,9 @@ import {
 import { computeStateHash } from '../utils/hash.js';
 import { IncidentService } from '../controller/incident-service.js';
 
-const dynamodb = new DynamoDBClient({});
+const dynamodb = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 const EVENTS_TABLE_NAME = process.env.INCIDENT_EVENTS_TABLE_NAME!;
 
 /**

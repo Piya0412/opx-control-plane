@@ -40,9 +40,15 @@ const CONFIG_TABLE_NAME = process.env.CONFIG_TABLE_NAME || 'opx-automation-confi
 const ALERT_TOPIC_ARN = process.env.ALERT_TOPIC_ARN;
 
 // AWS clients
-const dynamoClient = new DynamoDBClient({});
-const cloudwatchClient = new CloudWatchClient({});
-const snsClient = new SNSClient({});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const cloudwatchClient = new CloudWatchClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const snsClient = new SNSClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 // Stores
 const outcomeStore = new OutcomeStore(dynamoClient, OUTCOME_TABLE_NAME);

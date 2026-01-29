@@ -18,8 +18,12 @@ import { randomUUID } from 'crypto';
 import { ObservabilityAdapter, BudgetStatus } from './observability-adapter.js';
 import { AgentGuardrails } from './guardrails.js';
 
-const lambda = new LambdaClient({});
-const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+const lambda = new LambdaClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+}));
 
 export interface AgentInput {
   incidentId: string;

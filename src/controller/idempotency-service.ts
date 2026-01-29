@@ -13,7 +13,9 @@ import {
 import { CreateIncidentRequest } from '../domain/incident.js';
 import { canonicalizeDeep } from '../utils/hash.js';
 
-const dynamodb = new DynamoDBClient({});
+const dynamodb = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 const IDEMPOTENCY_TABLE_NAME = process.env.IDEMPOTENCY_TABLE_NAME!;
 
 /**

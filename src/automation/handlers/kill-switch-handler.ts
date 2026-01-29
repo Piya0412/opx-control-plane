@@ -27,7 +27,9 @@ const CONFIG_TABLE_NAME = process.env.CONFIG_TABLE_NAME || 'opx-automation-confi
 const AUDIT_TABLE_NAME = process.env.AUDIT_TABLE_NAME!;
 
 // AWS clients
-const dynamoClient = new DynamoDBClient({});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 const killSwitch = new KillSwitch(dynamoClient, CONFIG_TABLE_NAME);
 const auditStore = new AutomationAuditStore(dynamoClient, AUDIT_TABLE_NAME);
 

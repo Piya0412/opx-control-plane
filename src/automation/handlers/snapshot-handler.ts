@@ -43,8 +43,12 @@ const AUDIT_TABLE_NAME = process.env.AUDIT_TABLE_NAME!;
 const CONFIG_TABLE_NAME = process.env.CONFIG_TABLE_NAME || 'opx-automation-config';
 
 // AWS clients
-const dynamoClient = new DynamoDBClient({});
-const cloudwatchClient = new CloudWatchClient({});
+const dynamoClient = new DynamoDBClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
+const cloudwatchClient = new CloudWatchClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+});
 
 // Stores
 const outcomeStore = new OutcomeStore(dynamoClient, OUTCOME_TABLE_NAME);
