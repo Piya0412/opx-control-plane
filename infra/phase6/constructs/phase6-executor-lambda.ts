@@ -10,6 +10,9 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 export interface Phase6ExecutorLambdaProps {
   readonly checkpointTable: dynamodb.ITable;
   readonly environment?: string;
+  readonly guardrailId?: string;
+  readonly guardrailVersion?: string;
+  readonly violationsTable?: dynamodb.ITable;
 }
 
 export class Phase6ExecutorLambda extends Construct {
@@ -92,11 +95,33 @@ export class Phase6ExecutorLambda extends Construct {
       })
     );
 
-    // Create Lambda function
+    // Create Lambda function with optimized dependency bundling
     this.function = new lambda.Function(this, 'Function', {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'lambda_handler.handler',
-      code: lambda.Code.fromAsset('../../src/langgraph'),
+      code: lambda.Code.fromAsset('infra/phase6/lambda', {
+        bundling: {
+          image: lambda.Runtime.PYTHON_3_12.bundlingImage,
+          command: [
+            'bash', '-c',
+            [
+              // Install production dependencies only
+              'pip install -r requirements-prod.txt -t /asset-output --no-cache-dir',
+              // Copy Python source files and directories
+              'cp *.py /asset-output/ 2>/dev/null || true',
+              'cp -r action_groups /asset-output/ 2>/dev/null || true',
+              // Remove unnecessary files to reduce size
+              'cd /asset-output',
+              'find . -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true',
+              'find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true',
+              'find . -type f -name "*.pyc" -delete 2>/dev/null || true',
+              'find . -type f -name "*.pyo" -delete 2>/dev/null || true',
+              'find . -type f -name "test_*.py" -delete 2>/dev/null || true',
+              'rm -rf boto3* botocore* 2>/dev/null || true',  // Already in Lambda runtime
+            ].join(' && ')
+          ],
+        },
+      }),
       role: executionRole,
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,
@@ -104,11 +129,21 @@ export class Phase6ExecutorLambda extends Construct {
         LANGGRAPH_CHECKPOINT_TABLE: props.checkpointTable.tableName,
         USE_DYNAMODB_CHECKPOINTING: 'true',
         ENVIRONMENT: env,
+        ...(props.guardrailId && {
+          GUARDRAIL_ID: props.guardrailId,
+          GUARDRAIL_VERSION: props.guardrailVersion || 'DRAFT',
+          GUARDRAIL_VIOLATIONS_TABLE: props.violationsTable?.tableName || '',
+        }),
       },
       tracing: lambda.Tracing.ACTIVE,
       logRetention: logs.RetentionDays.ONE_MONTH,
       description: 'Phase 6 LangGraph executor - processes incident intelligence requests',
     });
+
+    // Grant violations table permissions if provided
+    if (props.violationsTable) {
+      props.violationsTable.grantWriteData(executionRole);
+    }
 
     // Create EventBridge rule for IncidentCreated events
     this.eventRule = new events.Rule(this, 'EventRule', {

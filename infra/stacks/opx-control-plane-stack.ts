@@ -33,6 +33,15 @@ import { BedrockActionGroups } from '../constructs/bedrock-action-groups.js';
 import { BedrockAgents } from '../constructs/bedrock-agents.js';
 import { KnowledgeCorpusBucket } from '../constructs/knowledge-corpus-bucket.js';
 import { BedrockKnowledgeBase } from '../constructs/bedrock-knowledge-base.js';
+import { KnowledgeBaseDashboard } from '../constructs/knowledge-base-dashboard.js';
+import { KnowledgeBaseAlarms } from '../constructs/knowledge-base-alarms.js';
+import { KnowledgeRetrievalMetricsTable } from '../constructs/knowledge-retrieval-metrics-table.js';
+import { KnowledgeAnalyticsProcessor } from '../constructs/knowledge-analytics-processor.js';
+import { LLMTracesTable } from '../constructs/llm-traces-table.js';
+import { TraceProcessorLambda } from '../constructs/trace-processor-lambda.js';
+import { GuardrailViolationsTable } from '../constructs/guardrail-violations-table.js';
+import { BedrockGuardrails } from '../constructs/bedrock-guardrails.js';
+import { GuardrailAlarms } from '../constructs/guardrail-alarms.js';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -787,10 +796,7 @@ export class OpxControlPlaneStack extends cdk.Stack {
     });
 
     // CloudWatch Dashboard: Agent Intelligence (Phase 6 Step 4)
-    const agentDashboard = new AgentDashboard(this, 'AgentDashboard', {
-      orchestratorFunction: agentOrchestration.orchestratorFunction,
-      agentFunctions: agentOrchestration.agentFunctions,
-    });
+    const agentDashboard = new AgentDashboard(this, 'AgentDashboard');
 
     // CloudWatch Alarms: Agent Monitoring (Phase 6 Step 4)
     // TODO: Replace with actual alert email from environment or parameter
@@ -838,6 +844,79 @@ export class OpxControlPlaneStack extends cdk.Stack {
     // NOTE: Temporarily commented out - will grant permissions to Phase 6 agent role after deployment
     // bedrockKnowledgeBase.grantRetrieve(bedrockAgentIamRoles.bedrockAgentRole);
     // bedrockKnowledgeBase.denyIngestion(bedrockAgentIamRoles.bedrockAgentRole);
+
+    // ========================================
+    // Phase 7.5: Knowledge Base Monitoring
+    // ========================================
+
+    // DynamoDB table for query analytics (NOT AUTHORITATIVE)
+    const knowledgeRetrievalMetricsTable = new KnowledgeRetrievalMetricsTable(
+      this,
+      'KnowledgeRetrievalMetricsTable',
+      {
+        tableName: 'opx-knowledge-retrieval-metrics',
+        ttlDays: 90,
+      }
+    );
+
+    // CloudWatch Dashboard
+    const knowledgeBaseDashboard = new KnowledgeBaseDashboard(
+      this,
+      'KnowledgeBaseDashboard',
+      {
+        dashboardName: 'opx-knowledge-base-monitoring',
+      }
+    );
+
+    // CloudWatch Alarms (with TreatMissingData = notBreaching)
+    const knowledgeBaseAlarms = new KnowledgeBaseAlarms(
+      this,
+      'KnowledgeBaseAlarms',
+      {
+        // alarmEmail: 'ops@example.com', // Configure email subscription
+      }
+    );
+
+    // Analytics Processor (daily at 00:00 UTC)
+    // TEMPORARILY DISABLED: Docker image pull issue in current environment
+    // const knowledgeAnalyticsProcessor = new KnowledgeAnalyticsProcessor(
+    //   this,
+    //   'KnowledgeAnalyticsProcessor',
+    //   {
+    //     metricsTable: knowledgeRetrievalMetricsTable.table,
+    //     analyticsBucket: knowledgeCorpusBucket.bucket,
+    //     scheduleExpression: 'cron(0 0 * * ? *)', // Daily at 00:00 UTC
+    //   }
+    // );
+
+    // ========================================
+    // Phase 8.1: LLM Tracing Infrastructure
+    // ========================================
+
+    // DynamoDB table for LLM traces (90-day TTL)
+    const llmTracesTable = new LLMTracesTable(this, 'LLMTracesTable', {
+      tableName: 'opx-llm-traces',
+      ttlDays: 90,
+    });
+
+    // Trace Processor Lambda (EventBridge → DynamoDB)
+    const traceProcessorLambda = new TraceProcessorLambda(this, 'TraceProcessorLambda', {
+      tracesTable: llmTracesTable.table,
+      eventBus: this.auditEventBus,
+    });
+
+    // ========================================
+    // Phase 8.2: Guardrails Enforcement
+    // ========================================
+
+    // DynamoDB table for guardrail violations (permanent records, no TTL)
+    const guardrailViolationsTable = new GuardrailViolationsTable(this, 'GuardrailViolationsTable');
+
+    // Bedrock Guardrails (PII detection, content filters, topic denial)
+    const bedrockGuardrails = new BedrockGuardrails(this, 'BedrockGuardrails');
+
+    // Note: Guardrails will be used by LangGraph Lambda (Python)
+    // Environment variables and permissions will be configured when LangGraph Lambda is deployed
 
     // ========================================
     // API Gateway: Human Interface
@@ -1113,6 +1192,33 @@ export class OpxControlPlaneStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'KnowledgeBaseRuntimeRoleArn', {
       value: bedrockKnowledgeBase.runtimeRole.roleArn,
       description: 'Bedrock Knowledge Base runtime role ARN (Phase 7.3)',
+    });
+
+    // Phase 8.1 Outputs
+    new cdk.CfnOutput(this, 'LLMTracesTableName', {
+      value: llmTracesTable.table.tableName,
+      description: 'DynamoDB LLM traces table name (Phase 8.1)',
+    });
+
+    // Phase 8.2 Outputs
+    new cdk.CfnOutput(this, 'GuardrailViolationsTableName', {
+      value: guardrailViolationsTable.table.tableName,
+      description: 'DynamoDB guardrail violations table name (Phase 8.2)',
+    });
+
+    new cdk.CfnOutput(this, 'GuardrailId', {
+      value: bedrockGuardrails.guardrailId,
+      description: 'Bedrock Guardrail ID (Phase 8.2)',
+    });
+
+    new cdk.CfnOutput(this, 'GuardrailArn', {
+      value: bedrockGuardrails.guardrailArn,
+      description: 'Bedrock Guardrail ARN (Phase 8.2)',
+    });
+
+    new cdk.CfnOutput(this, 'TraceProcessorFunctionName', {
+      value: traceProcessorLambda.function.functionName,
+      description: 'Trace processor Lambda function name (Phase 8.1)',
     });
   }
 }

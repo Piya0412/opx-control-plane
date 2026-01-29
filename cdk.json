@@ -1,5 +1,5 @@
 {
-  "app": "npx tsx infra/app.ts",
+  "app": "npx tsx infra/phase6/app.ts",
   "watch": {
     "include": [
       "**"

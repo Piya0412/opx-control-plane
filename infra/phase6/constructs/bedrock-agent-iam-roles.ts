@@ -42,6 +42,20 @@ export class BedrockAgentIamRoles extends Construct {
     }));
 
     // ========================================================================
+    // BEDROCK GUARDRAILS (PHASE 8.2)
+    // ========================================================================
+    this.bedrockAgentRole.addToPolicy(new iam.PolicyStatement({
+      sid: 'BedrockGuardrailsAccess',
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'bedrock:ApplyGuardrail',
+      ],
+      resources: [
+        `arn:aws:bedrock:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account}:guardrail/*`,
+      ],
+    }));
+
+    // ========================================================================
     // CLOUDWATCH LOGS (WRITE FOR AGENT LOGS)
     // ========================================================================
     this.bedrockAgentRole.addToPolicy(new iam.PolicyStatement({

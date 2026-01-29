@@ -19,6 +19,14 @@ import { BedrockActionGroups } from '../constructs/bedrock-action-groups.js';
 import { BedrockAgents } from '../constructs/bedrock-agents.js';
 import { LangGraphCheckpointTable } from '../constructs/langgraph-checkpoint-table.js';
 import { Phase6ExecutorLambda } from '../constructs/phase6-executor-lambda.js';
+import { BedrockGuardrails } from '../../constructs/bedrock-guardrails.js';
+import { GuardrailViolationsTable } from '../../constructs/guardrail-violations-table.js';
+import { GuardrailAlarms } from '../../constructs/guardrail-alarms.js';
+import { ValidationErrorsTable } from '../../constructs/validation-errors-table.js';
+import { ValidationAlarms } from '../../constructs/validation-alarms.js';
+import { TokenAnalyticsDashboard } from '../../constructs/token-analytics-dashboard.js';
+import { TokenAnalyticsAlarms } from '../../constructs/token-analytics-alarms.js';
+import { BudgetAlertLambda } from '../../constructs/budget-alert-lambda.js';
 
 export class Phase6BedrockStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -55,6 +63,85 @@ export class Phase6BedrockStack extends cdk.Stack {
       executionRole: iamRoles.bedrockAgentRole,
       actionGroups: actionGroups,
     });
+
+    // ========================================================================
+    // PHASE 8.2: BEDROCK GUARDRAILS
+    // ========================================================================
+
+    // Guardrail Violations Table
+    const violationsTable = new GuardrailViolationsTable(this, 'GuardrailViolationsTable');
+
+    // Bedrock Guardrails
+    const guardrails = new BedrockGuardrails(this, 'BedrockGuardrails');
+
+    // Guardrail Alarms
+    new GuardrailAlarms(this, 'GuardrailAlarms');
+
+    // Update executor Lambda with guardrail configuration
+    executorLambda.function.addEnvironment('GUARDRAIL_ID', guardrails.guardrailId);
+    executorLambda.function.addEnvironment('GUARDRAIL_VERSION', 'DRAFT');
+    executorLambda.function.addEnvironment('GUARDRAIL_VIOLATIONS_TABLE', violationsTable.table.tableName);
+    
+    // Grant violations table write permissions
+    violationsTable.table.grantWriteData(executorLambda.function);
+
+    // ========================================================================
+    // PHASE 8.3: STRUCTURED OUTPUT VALIDATION
+    // ========================================================================
+
+    // Validation Errors Table
+    const validationTable = new ValidationErrorsTable(this, 'ValidationErrorsTable');
+
+    // Validation Alarms
+    new ValidationAlarms(this, 'ValidationAlarms');
+
+    // Update executor Lambda with validation configuration
+    executorLambda.function.addEnvironment('VALIDATION_ERRORS_TABLE', validationTable.table.tableName);
+    
+    // Grant validation table write permissions
+    validationTable.table.grantWriteData(executorLambda.function);
+
+    // Grant CloudWatch metrics permissions for validation
+    executorLambda.function.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: ['cloudwatch:PutMetricData'],
+      resources: ['*'],
+      conditions: {
+        StringEquals: {
+          'cloudwatch:namespace': 'OPX/Validation',
+        },
+      },
+    }));
+
+    // ========================================================================
+    // PHASE 8.4: TOKEN USAGE ANALYTICS
+    // ========================================================================
+
+    // Token Analytics Dashboard
+    const tokenDashboard = new TokenAnalyticsDashboard(this, 'TokenAnalyticsDashboard', {
+      monthlyBudget: 100, // $100/month budget
+    });
+
+    // Token Analytics Alarms
+    new TokenAnalyticsAlarms(this, 'TokenAnalyticsAlarms', {
+      monthlyBudget: 100,
+    });
+
+    // Budget Alert Lambda (Optional - disabled by default)
+    // ✅ Correction 4: Optional, disabled by default
+    new BudgetAlertLambda(this, 'BudgetAlertLambda', {
+      enabled: false, // Set to true to enable
+    });
+
+    // Grant CloudWatch metrics permissions for analytics
+    executorLambda.function.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: ['cloudwatch:PutMetricData'],
+      resources: ['*'],
+      conditions: {
+        StringEquals: {
+          'cloudwatch:namespace': 'OPX/Analytics',
+        },
+      },
+    }));
 
     // ========================================================================
     // CROSS-STACK REFERENCES (IF NEEDED)
@@ -101,6 +188,32 @@ export class Phase6BedrockStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ActionGroupCount', {
       value: actionGroups.lambdas.size.toString(),
       description: 'Number of action group Lambdas deployed',
+    });
+
+    // Phase 8.2: Guardrail Outputs
+    new cdk.CfnOutput(this, 'GuardrailId', {
+      value: guardrails.guardrailId,
+      description: 'Bedrock Guardrail ID (Phase 8.2)',
+      exportName: 'OpxPhase6-GuardrailId',
+    });
+
+    new cdk.CfnOutput(this, 'GuardrailArn', {
+      value: guardrails.guardrailArn,
+      description: 'Bedrock Guardrail ARN (Phase 8.2)',
+      exportName: 'OpxPhase6-GuardrailArn',
+    });
+
+    new cdk.CfnOutput(this, 'GuardrailViolationsTableName', {
+      value: violationsTable.table.tableName,
+      description: 'Guardrail Violations DynamoDB Table (Phase 8.2)',
+      exportName: 'OpxPhase6-GuardrailViolationsTableName',
+    });
+
+    // Phase 8.3: Validation Outputs
+    new cdk.CfnOutput(this, 'ValidationErrorsTableName', {
+      value: validationTable.table.tableName,
+      description: 'Validation Errors DynamoDB Table (Phase 8.3)',
+      exportName: 'OpxPhase6-ValidationErrorsTableName',
     });
   }
 }

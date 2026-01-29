@@ -126,15 +126,18 @@ export class BedrockAgents extends Construct {
     const agent = new bedrock.CfnAgent(this, `Agent-${config.id}`, {
       agentName: `opx-${config.id}`,
       agentResourceRoleArn: props.executionRole.roleArn,
-      foundationModel: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+      foundationModel: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
       instruction: instruction,
       description: config.description,
       
       // Session configuration
       idleSessionTtlInSeconds: 600, // 10 minutes
       
-      // Prepare agent (MANDATORY)
-      prepareAgent: true,
+      // Guardrail configuration (Phase 8.2)
+      guardrailConfiguration: {
+        guardrailIdentifier: cdk.Fn.importValue('OpxPhase6-GuardrailId'),
+        guardrailVersion: 'DRAFT',
+      },
       
       // Action groups (if any)
       actionGroups: config.actionGroups.map(ag => {

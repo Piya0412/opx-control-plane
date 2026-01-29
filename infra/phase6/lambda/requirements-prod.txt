@@ -1,0 +1,16 @@
+# Phase 6 Production Dependencies (Lambda-optimized)
+# Excludes test/dev dependencies to stay under 250MB unzipped limit
+
+# LangGraph and LangChain (core only)
+langgraph==0.2.45
+langchain-core==0.3.15
+langchain-aws==0.2.6
+
+# AWS SDK (already available in Lambda runtime, but pinned for consistency)
+boto3==1.35.76
+
+# Data validation (required)
+pydantic==2.10.3
+
+# Retry logic (lightweight)
+tenacity==9.0.0

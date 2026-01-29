@@ -133,9 +133,6 @@ export class BedrockAgents extends Construct {
       // Session configuration
       idleSessionTtlInSeconds: 600, // 10 minutes
       
-      // Prepare agent (MANDATORY)
-      prepareAgent: true,
-      
       // Action groups (if any)
       actionGroups: config.actionGroups.map(ag => {
         const lambdaFn = props.actionGroups.lambdas.get(`${config.id}-${ag.name}`);

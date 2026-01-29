@@ -78,13 +78,17 @@ archive/
 chunks/
 chunks-bedrock/
 *.zip
-out.json
-retrieve-test.json
-create-datasource.json
-update-datasource.json
-ingestion-policy.json
-infra/phase7/
-scripts/
 knowledge/**/*.meta.json
-BEDROCK_KB_FIX_COMPLETE.md
-SYNC_COMPLETE.md
+
+# Build and test artifacts
+build-*.txt
+test-output.txt
+gate-results.txt
+*-test.json
+phase6-*.json
+response*.json
+out.json
+
+# Temporary command files (invalid filenames)
+cloudformation*
+dynamodb*

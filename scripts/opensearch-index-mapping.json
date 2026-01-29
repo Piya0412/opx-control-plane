@@ -1,0 +1,35 @@
+{
+  "settings": {
+    "index.knn": true
+  },
+  "mappings": {
+    "properties": {
+      "embedding": {
+        "type": "knn_vector",
+        "dimension": 1536,
+        "method": {
+          "name": "hnsw",
+          "engine": "faiss",
+          "parameters": {
+            "ef_construction": 512,
+            "m": 16
+          }
+        }
+      },
+      "content": {
+        "type": "text"
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "chunk_id": { "type": "keyword" },
+          "source_file": { "type": "keyword" },
+          "start_line": { "type": "integer" },
+          "end_line": { "type": "integer" },
+          "section_header": { "type": "text" },
+          "chunk_type": { "type": "keyword" }
+        }
+      }
+    }
+  }
+}
