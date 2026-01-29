@@ -30,7 +30,16 @@ describe('SignalStore', () => {
 
   beforeEach(() => {
     dynamoMock.reset();
-    store = new SignalStore(new DynamoDBClient({}), 'opx-signals');
+    store = new SignalStore(
+      new DynamoDBClient({
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: 'test',
+          secretAccessKey: 'test',
+        },
+      }),
+      'opx-signals'
+    );
   });
 
   describe('putSignal', () => {

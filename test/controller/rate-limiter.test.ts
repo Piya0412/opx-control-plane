@@ -21,6 +21,13 @@ describe('CP-8: Rate Limiter', () => {
     ddbMock.reset();
     rateLimiter = new RateLimiter({
       tableName: 'test-rate-limits',
+      client: new DynamoDBClient({
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: 'test',
+          secretAccessKey: 'test',
+        },
+      }),
     });
   });
 

@@ -55,7 +55,16 @@ describe('CorrelationRuleStore', () => {
 
   beforeEach(() => {
     dynamoMock.reset();
-    store = new CorrelationRuleStore(new DynamoDBClient({}), 'opx-correlation-rules');
+    store = new CorrelationRuleStore(
+      new DynamoDBClient({
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: 'test',
+          secretAccessKey: 'test',
+        },
+      }),
+      'opx-correlation-rules'
+    );
   });
 
   describe('createRule', () => {

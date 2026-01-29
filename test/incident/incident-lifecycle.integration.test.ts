@@ -8,10 +8,14 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { IncidentManager } from '../../src/incident/incident-manager';
 import { IncidentStore } from '../../src/incident/incident-store';
 import { IncidentStateMachine } from '../../src/incident/state-machine';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
+import { mockClient } from 'aws-sdk-client-mock';
 import type { Incident, Authority, TransitionMetadata } from '../../src/incident/incident.schema';
 import type { PromotionResult } from '../../src/promotion/promotion.schema';
 import type { EvidenceBundle } from '../../src/evidence/evidence-bundle.schema';
+
+// Mock DynamoDB client for CI environment
+const dynamoMock = mockClient(DynamoDBClient);
 
 describe('Phase 3.4: Incident Lifecycle Integration', () => {
   let incidentManager: IncidentManager;
@@ -19,9 +23,49 @@ describe('Phase 3.4: Incident Lifecycle Integration', () => {
   let stateMachine: IncidentStateMachine;
 
   const tableName = process.env.INCIDENTS_TABLE_NAME || 'opx-incidents';
-  const client = new DynamoDBClient({});
+  const client = new DynamoDBClient({
+    region: 'us-east-1',
+    credentials: {
+      accessKeyId: 'test',
+      secretAccessKey: 'test',
+    },
+  });
+  
+  // In-memory store for mocked DynamoDB operations
+  const mockStore = new Map<string, any>();
 
   beforeEach(() => {
+    // Reset mock and in-memory store
+    dynamoMock.reset();
+    mockStore.clear();
+    
+    // Mock PutItemCommand
+    dynamoMock.on(PutItemCommand).callsFake((input) => {
+      const key = input.Item?.pk?.S || '';
+      mockStore.set(key, input.Item);
+      return Promise.resolve({});
+    });
+    
+    // Mock GetItemCommand
+    dynamoMock.on(GetItemCommand).callsFake((input) => {
+      const key = input.Key?.pk?.S || '';
+      const item = mockStore.get(key);
+      return Promise.resolve({
+        Item: item || undefined,
+      });
+    });
+    
+    // Mock UpdateItemCommand
+    dynamoMock.on(UpdateItemCommand).callsFake((input) => {
+      const key = input.Key?.pk?.S || '';
+      const item = mockStore.get(key);
+      if (item) {
+        // Simple update simulation - just store the updated attributes
+        mockStore.set(key, { ...item, ...input.ExpressionAttributeValues });
+      }
+      return Promise.resolve({});
+    });
+    
     stateMachine = new IncidentStateMachine();
     incidentStore = new IncidentStore({ tableName, client });
     incidentManager = new IncidentManager(incidentStore, stateMachine);

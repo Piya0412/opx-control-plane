@@ -4,13 +4,17 @@
  * Tests evidence bundle creation, storage, and retrieval.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { DynamoDBClient, PutItemCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
+import { mockClient } from 'aws-sdk-client-mock';
 import { EvidenceBuilder } from '../../src/evidence/evidence-builder.js';
 import { EvidenceStore } from '../../src/evidence/evidence-store.js';
 import { computeEvidenceId } from '../../src/evidence/evidence-id.js';
 import { computeSignalSummary } from '../../src/evidence/signal-summary.js';
 import type { DetectionSummary } from '../../src/evidence/evidence-bundle.schema.js';
+
+// Mock DynamoDB client for CI environment
+const dynamoMock = mockClient(DynamoDBClient);
 
 describe('Evidence Bundle Integration', () => {
   let evidenceStore: EvidenceStore;
@@ -18,10 +22,53 @@ describe('Evidence Bundle Integration', () => {
   
   const tableName = process.env.EVIDENCE_BUNDLES_TABLE_NAME || 'opx-evidence-bundles';
   
+  // In-memory store for mocked DynamoDB operations
+  const mockStore = new Map<string, any>();
+  
   beforeAll(() => {
-    const dynamoClient = new DynamoDBClient({});
+    // Create DynamoDB client with mock credentials for CI environment
+    const dynamoClient = new DynamoDBClient({
+      region: 'us-east-1',
+      credentials: {
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+      },
+    });
     evidenceStore = new EvidenceStore(dynamoClient, tableName);
     evidenceBuilder = new EvidenceBuilder();
+  });
+  
+  beforeEach(() => {
+    // Reset mock and in-memory store before each test
+    dynamoMock.reset();
+    mockStore.clear();
+    
+    // Mock PutItemCommand
+    dynamoMock.on(PutItemCommand).callsFake((input) => {
+      const key = input.Item?.pk?.S || '';
+      
+      // Check if item already exists (for conditional write)
+      if (mockStore.has(key)) {
+        const error: any = new Error('ConditionalCheckFailedException');
+        error.name = 'ConditionalCheckFailedException';
+        throw error;
+      }
+      
+      // Store item
+      mockStore.set(key, input.Item);
+      
+      return Promise.resolve({});
+    });
+    
+    // Mock GetItemCommand
+    dynamoMock.on(GetItemCommand).callsFake((input) => {
+      const key = input.Key?.pk?.S || '';
+      const item = mockStore.get(key);
+      
+      return Promise.resolve({
+        Item: item || undefined,
+      });
+    });
   });
   
   describe('Build and Store Evidence', () => {

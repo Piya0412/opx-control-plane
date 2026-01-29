@@ -18,7 +18,16 @@ describe('AutomationAuditStore', () => {
 
   beforeEach(() => {
     dynamoMock.reset();
-    store = new AutomationAuditStore(new DynamoDBClient({}), tableName);
+    store = new AutomationAuditStore(
+      new DynamoDBClient({
+        region: 'us-east-1',
+        credentials: {
+          accessKeyId: 'test',
+          secretAccessKey: 'test',
+        },
+      }),
+      tableName
+    );
   });
 
   // Helper to create test audit
