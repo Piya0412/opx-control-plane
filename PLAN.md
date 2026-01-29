@@ -430,17 +430,36 @@ This is a **production-grade Bedrock multi-agent system** with LangGraph orchest
 ## Documentation
 
 ### Architecture
-- `docs/architecture/ARCHITECTURE.md` - System overview
-- `docs/phase-6/` - Bedrock + LangGraph architecture
-- `docs/phase-7/` - Knowledge Base architecture
-- `docs/phase-8/` - Observability architecture
+- `docs/architecture/system-overview.md` - High-level system overview
+- `docs/architecture/ARCHITECTURE.md` - Detailed architecture (legacy)
+- `docs/architecture/control-plane-architecture.md` - Control plane design
+- `docs/architecture/data-flow.md` - Data flow diagrams
+- `docs/architecture/failure-model.md` - Failure handling
 
 ### Phases
-- `docs/phases/PHASE_*.md` - 60+ phase documents
-- Design approvals, implementation logs, completion summaries
+- `docs/phases/phase-1/` - Incident Control Plane
+- `docs/phases/phase-2/` - Observability & Detection
+- `docs/phases/phase-3/` - Incident Construction
+- `docs/phases/phase-4/` - Post-Incident Learning
+- `docs/phases/phase-5/` - Automation Infrastructure
+- `docs/phases/phase-6/` - Bedrock + LangGraph Agents
+- `docs/phases/phase-7/` - Knowledge Base & RAG
+- `docs/phases/phase-8/` - LLM Observability & Governance
+
+Each phase folder contains:
+- `PHASE_X_DESIGN.md` - Canonical design document
+- `IMPLEMENTATION.md` - Implementation summary
+- `VALIDATION.md` - Validation results
+- `DEPLOYMENT.md` - Deployment notes
 
 ### Deployment
-- `docs/deployment/` - Deployment guides, validation results
+- `docs/deployment/deployment-guide.md` - Complete deployment guide
+- `docs/deployment/runbook.md` - Operations runbook
+- `docs/deployment/troubleshooting.md` - Troubleshooting guide
+
+### Validation
+- `docs/validation/gates/` - Validation gate results
+- `docs/validation/audits/` - System integrity audits
 
 ---
 
