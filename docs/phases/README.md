@@ -2,178 +2,189 @@
 
 This directory contains the **canonical documentation** for all development phases of the OPX Control Plane project. Each phase represents a major milestone in the system's evolution.
 
-## Directory Structure
+## Documentation Structure
 
-```
-docs/phases/
-├── phase-1/    # Foundation & Core Architecture
-├── phase-2/    # Signal Ingestion & Correlation
-├── phase-3/    # Candidate Generation & Evidence
-├── phase-4/    # Promotion & Authority
-├── phase-5/    # Learning & Calibration
-├── phase-6/    # Agent Orchestration (LangGraph)
-├── phase-7/    # Knowledge Base & RAG
-└── phase-8/    # Observability & Validation
-```
+Each phase contains a small, well-defined set of authoritative documents:
+
+- **DESIGN.md** - Complete architecture, implementation, and technical details
+- **STATUS.md** - Current status, completion summary, and known limitations (where applicable)
+- **RUNBOOK.md** - Operational procedures and troubleshooting (where applicable)
+- **IMPLEMENTATION.md** - Implementation-specific details (Phase 8 only)
+- **VALIDATION.md** - Validation gates and test results (Phase 8 only)
 
 ## Phase Overview
 
 ### Phase 1: Foundation & Core Architecture
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE | **Completion:** 2026-01-15
 
 Core domain models, incident management, and foundational architecture.
 
-**Key Documents:**
-- `PHASE_1_DESIGN.md` - Initial architecture and design
-- `PHASE_1_IMPLEMENTATION_LOCK.md` - Implementation completion marker
+**Documents:**
+- `DESIGN.md` - Complete architecture and implementation
+- `STATUS.md` - Completion summary and design freeze
+
+**Key Features:**
+- Deterministic incident state machine
+- Event sourcing with DynamoDB
+- Permanent idempotency
+- IAM-only security
 
 ---
 
 ### Phase 2: Signal Ingestion & Correlation
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE | **Completion:** 2026-01-21
 
 Signal normalization, correlation engine, and detection rules.
 
-**Key Documents:**
-- `PHASE_2_DESIGN.md` - Overall phase design
-- `PHASE_2.1_SIGNAL_INGESTION_DESIGN.md` - Signal ingestion architecture
-- `PHASE_2.2_SIGNAL_CORRELATION_DESIGN.md` - Correlation engine design
-- `PHASE_2.3_ARCHITECTURE.md` - Candidate generation architecture
-- `PHASE_2.3_RUNBOOK.md` - Operational runbook
-- `PHASE_2.3_KILL_SWITCH.md` - Safety mechanisms
-- `PHASE_2_INVARIANTS.md` - System invariants
-- `PHASE_2_OBSERVABILITY_DESIGN.md` - Observability strategy
+**Documents:**
+- `DESIGN.md` - Complete architecture covering all sub-phases (2.1, 2.2, 2.3)
+- `RUNBOOK.md` - Operational procedures and troubleshooting
+
+**Key Features:**
+- Deterministic signal IDs
+- Time-window correlation
+- Kill switch mechanism
+- Rate limiting
 
 ---
 
 ### Phase 3: Candidate Generation & Evidence
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE | **Completion:** 2026-01-23
 
 Candidate generation, evidence bundling, and graph construction.
 
-**Key Documents:**
-- `PHASE_3_DESIGN.md` - Phase design
-- `phase-3-logic-complete.md` - Implementation completion
+**Documents:**
+- `DESIGN.md` - Complete architecture and implementation
+
+**Key Features:**
+- Evidence bundling with confidence scoring
+- Promotion gate with policy evaluation
+- Incident lifecycle management
+- Deterministic evidence IDs
 
 ---
 
 ### Phase 4: Promotion & Authority
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE | **Completion:** 2026-01-24
 
-Promotion policies, authority validation, and incident lifecycle management.
+Outcome recording, confidence calibration, and pattern extraction.
 
-**Key Documents:**
-- `PHASE_4_DESIGN.md` - Phase design
+**Documents:**
+- `DESIGN.md` - Complete architecture and implementation
+
+**Key Features:**
+- Post-incident learning
+- Pattern extraction (weekly)
+- Confidence calibration (monthly)
+- Resolution summaries
 
 ---
 
 ### Phase 5: Learning & Calibration
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE | **Completion:** 2026-01-24
 
-Outcome recording, confidence calibration, and pattern extraction.
+Automation infrastructure with safety controls.
 
-**Key Documents:**
-- `PHASE_5_DESIGN.md` - Phase design
-- `PHASE_5_DEPLOYMENT.md` - Deployment guide
-- `PHASE_5_RUNBOOK.md` - Operational runbook
-- `PHASE_5_TROUBLESHOOTING.md` - Troubleshooting guide
+**Documents:**
+- `DESIGN.md` - Complete architecture and implementation
+
+**Key Features:**
+- Automation audit trail
+- Kill switch (global, service, action)
+- Rate limiting with token bucket
+- Retry logic with circuit breaker
 
 ---
 
 ### Phase 6: Agent Orchestration (LangGraph)
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE | **Completion:** 2026-01-26
 
-Multi-agent orchestration using LangGraph, consensus mechanisms, and agent coordination.
+Multi-agent orchestration using LangGraph with Bedrock agents.
 
-**Key Documents:**
-- `PHASE_6_DESIGN.md` - Phase design
-- `phase-6.md` - Overview and summary
-- `PHASE_6_WEEK_4_COMPLETE.md` - Week 4 milestone
+**Documents:**
+- `DESIGN.md` - Complete architecture and implementation
 
-**Subdirectories:**
-- `decisions/` - Architectural decisions and design choices
-- `integration/` - End-to-end integration documentation
-- `reports/` - Status reports and cleanup documentation
-- `weeks/` - Weekly progress tracking (weeks 1-5)
+**Key Features:**
+- 6 Bedrock agents (Signal Intelligence, Historical Pattern, Change Intelligence, Risk & Blast Radius, Knowledge RAG, Response Strategy)
+- LangGraph orchestration with parallel execution
+- Deterministic replay via checkpointing
+- Cost guardian with budget enforcement
 
 ---
 
 ### Phase 7: Knowledge Base & RAG
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE (7.1-7.4) | **Completion:** 2026-01-27
 
-Bedrock Knowledge Base integration, deterministic chunking, and RAG agent implementation.
+Bedrock Knowledge Base with deterministic chunking and RAG integration.
 
-**Key Documents:**
-- `PHASE_7_DESIGN.md` - Overall phase design
-- `phase-7.md` - Phase overview
-- `PHASE_7_STATUS.md` - Status tracking
+**Documents:**
+- `DESIGN.md` - Complete architecture covering all sub-phases (7.1-7.4)
+
+**Key Features:**
+- Deterministic document chunking (500 tokens, 10% overlap)
+- OpenSearch Serverless with semantic search
+- Bedrock Knowledge Base integration
+- RAG agent with citation formatting
 
 **Sub-phases:**
-- **7.1:** Knowledge Corpus (`phase-7.1-knowledge-corpus.md`)
-- **7.2:** Deterministic Chunking (`phase-7.2-deterministic-chunking.md`)
-- **7.3:** Bedrock Knowledge Base (`phase-7.3-bedrock-knowledge-base.md`)
-- **7.4:** Agent Integration (`phase-7.4-agent-integration.md`)
-- **7.5:** Operational Queries (`PHASE_7.5_LOGS_INSIGHTS_QUERIES.md`)
+- 7.1: Knowledge Corpus Foundation
+- 7.2: Deterministic Chunking
+- 7.3: Bedrock Knowledge Base
+- 7.4: RAG Integration
+- 7.5: Operational Queries (deferred)
 
 ---
 
 ### Phase 8: Observability & Validation
-**Status:** ✅ Complete
+**Status:** ✅ COMPLETE (8.1-8.4) | **Completion:** 2026-01-29
 
 Comprehensive tracing, guardrails, validation framework, and token analytics.
 
-**Key Documents:**
-- `PHASE_8_DESIGN.md` - Overall phase design
-- `PHASE_8_DESIGN_PLAN.md` - Implementation plan
-- `IMPLEMENTATION.md` - Implementation guide
-- `VALIDATION.md` - Validation framework
+**Documents:**
+- `DESIGN.md` - Complete architecture covering all sub-phases (8.1-8.4)
+- `IMPLEMENTATION.md` - Implementation details and file inventory
+- `VALIDATION.md` - Validation gates and test results
+
+**Key Features:**
+- Prompt/response tracing with PII redaction (8.1)
+- Bedrock Guardrails with PII blocking (8.2)
+- 3-layer output validation with retry (8.3)
+- Token analytics and cost tracking (8.4)
 
 **Sub-phases:**
-
-#### 8.1: Tracing Infrastructure
-- `PHASE_8.1_DESIGN.md` - Tracing design
-- `PHASE_8.1_TRACING_DESIGN.md` - Detailed tracing architecture
-- `PHASE_8.1_IMPLEMENTATION_COMPLETE.md` - Completion marker
-
-#### 8.2: Guardrails
-- `PHASE_8.2_DESIGN.md` - Guardrails design
-- `PHASE_8.2_GUARDRAILS_DESIGN.md` - Detailed guardrails architecture
-- `PHASE_8.2_VALIDATION_GATES.md` - Validation gates
-- `PHASE_8.2_DEPLOYMENT_COMPLETE_FINAL.md` - Final deployment status
-
-#### 8.3: Validation Framework
-- `PHASE_8.3_DESIGN.md` - Validation design
-- `PHASE_8.3_VALIDATION_DESIGN.md` - Detailed validation architecture
-- `PHASE_8.3_IMPLEMENTATION_COMPLETE.md` - Completion marker
-
-#### 8.4: Token Analytics
-- `PHASE_8.4_DESIGN.md` - Analytics design
-- `PHASE_8.4_TOKEN_ANALYTICS_DESIGN.md` - Token analytics architecture
-- `PHASE_8.4_COMPLETE.md` - Completion marker
-
----
-
-## Document Naming Conventions
-
-- `PHASE_X_DESIGN.md` - Main design document for phase X
-- `PHASE_X.Y_DESIGN.md` - Design for sub-phase X.Y
-- `PHASE_X.Y_IMPLEMENTATION_COMPLETE.md` - Implementation completion marker
-- `PHASE_X.Y_DEPLOYMENT_SUCCESS.md` - Deployment completion marker
-- `PHASE_X.Y_COMPLETE.md` - Overall sub-phase completion
-- `phase-x.md` - Phase overview/summary (lowercase for summaries)
-- `phase-x.y-feature.md` - Feature-specific documentation
+- 8.1: Prompt & Response Tracing
+- 8.2: Guardrails
+- 8.3: Output Validation
+- 8.4: Token Analytics
 
 ---
 
 ## How to Navigate
 
-1. **Starting a new feature?** Check the relevant phase's `PHASE_X_DESIGN.md` for architecture
-2. **Understanding implementation?** Look for `IMPLEMENTATION.md` or `*_IMPLEMENTATION_COMPLETE.md`
-3. **Deploying?** Check `*_DEPLOYMENT*.md` files
-4. **Troubleshooting?** Look for `*_RUNBOOK.md` or `*_TROUBLESHOOTING.md`
-5. **Understanding decisions?** Check phase-6's `decisions/` directory for architectural choices
+1. **Understanding a phase?** Start with `DESIGN.md` for complete architecture
+2. **Operating the system?** Check `RUNBOOK.md` for procedures (Phase 2)
+3. **Checking status?** See `STATUS.md` for completion summary (Phase 1)
+4. **Validating Phase 8?** Review `VALIDATION.md` for test gates
 
----
+## Document Consolidation
+
+This documentation structure represents a **complete consolidation** from 125+ files to 13 canonical documents. All intermediate checkpoints, approval markers, and status files have been merged into the authoritative documents above.
+
+**Removed:**
+- Step-level files (PHASE_X.Y_*)
+- Status markers (*_COMPLETE.md, *_APPROVED.md, *_READY.md)
+- Correction files (*_CORRECTIONS_APPLIED.md)
+- Checkpoint files (*_MORNING_COMPLETE.md, *_ADJUSTMENTS_APPLIED.md)
+- Weekly tracking (Phase 6 weeks/)
+- Decision logs (Phase 6 decisions/)
+- Integration reports (Phase 6 integration/)
+- Status reports (Phase 6 reports/)
+
+**Retained:**
+- All technical content merged into DESIGN.md
+- All operational procedures in RUNBOOK.md
+- All validation results in VALIDATION.md
+- All implementation details in IMPLEMENTATION.md
 
 ## Related Documentation
 
@@ -187,6 +198,23 @@ Comprehensive tracing, guardrails, validation framework, and token analytics.
 
 ## Maintenance
 
-This is the **single source of truth** for phase documentation. All phase-related documents must reside within their respective phase directories. Do not create duplicate documentation hierarchies.
+This is the **single source of truth** for phase documentation. All phase-related documents must reside within their respective phase directories using the canonical naming convention.
 
-**Last Updated:** 2026-01-31
+**Canonical Documents:**
+- `DESIGN.md` - Required for all phases
+- `STATUS.md` - Optional, for completion summaries
+- `RUNBOOK.md` - Optional, for operational procedures
+- `IMPLEMENTATION.md` - Optional, for implementation details
+- `VALIDATION.md` - Optional, for validation results
+
+**Do not create:**
+- Step-level files (PHASE_X.Y_*)
+- Status markers (*_COMPLETE.md, *_APPROVED.md)
+- Checkpoint files (*_CHECKPOINT.md, *_PROGRESS.md)
+- Duplicate subdirectories (weeks/, decisions/, reports/)
+
+---
+
+**Last Updated:** 2026-01-31  
+**Consolidation:** 125 files → 13 canonical documents  
+**Reduction:** 89.6%
