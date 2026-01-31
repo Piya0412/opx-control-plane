@@ -9,9 +9,9 @@ import os
 import uuid
 from typing import Dict, Any
 
-from .graph import build_graph
-from .state import create_initial_state
-from .checkpointing import create_dynamodb_checkpointer
+from graph import build_graph
+from state import create_initial_state
+from checkpointing import create_dynamodb_checkpointer
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:

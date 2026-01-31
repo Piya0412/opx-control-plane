@@ -113,16 +113,25 @@ def invoke_langgraph_executor(incident_id: str, service: str, severity: str) -> 
     """Invoke the LangGraph executor Lambda"""
     print(f"\n🤖 Invoking LangGraph agent pipeline...")
     
+    # Lambda expects EventBridge event format
     payload = {
-        'incidentId': incident_id,
-        'service': service,
-        'severity': severity,
-        'signals': [
-            {'type': 'high-error-rate', 'value': 0.15},
-            {'type': 'high-latency', 'value': 2500},
-            {'type': 'connection-pool-exhaustion', 'value': 0.95}
-        ],
-        'demo': True
+        'detail-type': 'IncidentCreated',
+        'source': 'opx.demo',
+        'detail': {
+            'incident_id': incident_id,
+            'service': service,
+            'severity': severity,
+            'evidence_bundle': {
+                'signals': [
+                    {'type': 'high-error-rate', 'value': 0.15},
+                    {'type': 'high-latency', 'value': 2500},
+                    {'type': 'connection-pool-exhaustion', 'value': 0.95}
+                ],
+                'confidence_score': 0.85,
+                'detection_count': 3
+            },
+            'budget_limit': 10.0
+        }
     }
     
     try:
@@ -136,6 +145,10 @@ def invoke_langgraph_executor(incident_id: str, service: str, severity: str) -> 
         
         if response['StatusCode'] == 200:
             print(f"  ✅ Execution successful")
+            if 'errorMessage' in result:
+                print(f"  ⚠️  Lambda returned error: {result.get('errorMessage', 'Unknown error')}")
+                if 'errorType' in result:
+                    print(f"     Error type: {result['errorType']}")
             return result
         else:
             print(f"  ❌ Execution failed: {result}")
@@ -241,6 +254,18 @@ def main():
         
         # Step 3: Invoke LangGraph executor
         result = invoke_langgraph_executor(incident_id, args.service, args.severity)
+        
+        # Print result summary
+        if 'error' in result:
+            print(f"\n⚠️  Lambda execution had errors")
+        elif 'errorMessage' in result:
+            print(f"\n⚠️  Lambda returned error: {result['errorMessage']}")
+        else:
+            print(f"\n✅ Lambda execution completed")
+            if 'statusCode' in result:
+                print(f"   Status: {result['statusCode']}")
+            if 'body' in result:
+                print(f"   Response: {result['body'][:200] if len(str(result['body'])) > 200 else result['body']}")
         
         # Step 4: Check checkpoints
         time.sleep(2)  # Wait for async writes

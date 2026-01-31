@@ -29,7 +29,7 @@ from typing import Callable, Dict, Optional, Union
 import boto3
 from botocore.exceptions import ClientError
 
-from .state import (
+from state import (
     GraphState,
     AgentInput,
     AgentOutput,
@@ -37,7 +37,7 @@ from .state import (
     ExecutionTraceEntry,
     JSONValue,
 )
-from .trace_emitter import emit_trace_event_async
+from trace_emitter import emit_trace_event_async
 
 # Phase 8.2: Guardrail support
 import os
