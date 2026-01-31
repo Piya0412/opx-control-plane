@@ -1,0 +1,12 @@
+{
+    "events": [
+        {
+            "logStreamName": "2026/01/31/[$LATEST]94c877771c784a04b9ba3d5fb68f9470",
+            "timestamp": 1769844397312,
+            "message": "[INFO] Invoking LangGraph with DynamoDB checkpointing...\n",
+            "ingestionTime": 1769844401004,
+            "eventId": "39468848945501908504046693973450634355012641121936539657"
+        }
+    ],
+    "searchedLogStreams": []
+}

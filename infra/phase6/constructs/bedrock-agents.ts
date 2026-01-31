@@ -110,7 +110,8 @@ export class BedrockAgents extends Construct {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
     
-    const promptPath = join(__dirname, '../../prompts', config.id, 'v1.0.0.md');
+    // Prompts are at workspace root: prompts/{agent-id}/v1.0.0.md
+    const promptPath = join(__dirname, '../../../prompts', config.id, 'v1.0.0.md');
     let instruction: string;
     
     try {
@@ -140,7 +141,7 @@ export class BedrockAgents extends Construct {
       },
       
       // Action groups (if any)
-      actionGroups: config.actionGroups.map(ag => {
+      actionGroups: config.actionGroups.length > 0 ? config.actionGroups.map(ag => {
         const lambdaFn = props.actionGroups.lambdas.get(`${config.id}-${ag.name}`);
         
         if (!lambdaFn) {
@@ -208,7 +209,11 @@ export class BedrockAgents extends Construct {
             }),
           },
         };
-      }),
+      }) : undefined,
+      
+      // For agents with no action groups (like response-strategy),
+      // configure to skip action group orchestration
+      skipResourceInUseCheckOnDelete: true,
     });
 
     this.agents.set(config.id, agent);

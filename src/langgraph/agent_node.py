@@ -514,6 +514,13 @@ def create_agent_node(
         agent_input = state["agent_input"]
         retry_attempt = state["retry_count"].get(agent_id, 0)
         
+        # Fail-closed: Validate agent configuration at runtime
+        if not bedrock_agent_id or not bedrock_agent_alias_id:
+            raise RuntimeError(
+                f"Agent {agent_id} misconfigured: missing Bedrock agent ID or alias. "
+                f"agent_id={bedrock_agent_id!r}, alias_id={bedrock_agent_alias_id!r}"
+            )
+        
         # Emit STARTED trace
         state = add_execution_trace(
             state,
@@ -548,12 +555,35 @@ def create_agent_node(
             # ================================================================
             # STEP 3: INVOKE BEDROCK AGENT (WITH GUARDRAILS)
             # ================================================================
+            # Diagnostic log for verification
+            print(f"[INFO] Invoking Bedrock agent {agent_id} | agent_id={bedrock_agent_id} | alias_id={bedrock_agent_alias_id}")
+            
             # Attach guardrails if configured
             if GUARDRAIL_ID:
                 bedrock_request['guardrailIdentifier'] = GUARDRAIL_ID
                 bedrock_request['guardrailVersion'] = GUARDRAIL_VERSION
             
+            # Enable trace to debug response issues
+            bedrock_request['enableTrace'] = True
+            
             bedrock_response = bedrock_agent_runtime.invoke_agent(**bedrock_request)
+            
+            # CRITICAL: Log the FULL raw response to understand structure
+            print(f"[RAW BEDROCK RESPONSE] Agent: {agent_id}")
+            print(f"[RAW BEDROCK RESPONSE] Keys: {list(bedrock_response.keys())}")
+            print(f"[RAW BEDROCK RESPONSE] Full response: {json.dumps(bedrock_response, default=str, indent=2)[:2000]}")
+            
+            # Log response structure for debugging
+            print(f"[DEBUG] Bedrock response keys for {agent_id}: {list(bedrock_response.keys())}")
+            print(f"[DEBUG] Full response metadata: {bedrock_response.get('ResponseMetadata', {})}")
+            
+            if "completion" in bedrock_response:
+                print(f"[DEBUG] Agent {agent_id} returned streaming response")
+            elif "output" in bedrock_response:
+                print(f"[DEBUG] Agent {agent_id} returned non-streaming response")
+            else:
+                print(f"[WARNING] Agent {agent_id} returned unexpected response structure")
+                print(f"[DEBUG] Full response (first 500 chars): {str(bedrock_response)[:500]}")
             
             # ================================================================
             # STEP 3.5: CHECK FOR GUARDRAIL VIOLATIONS
@@ -610,16 +640,52 @@ def create_agent_node(
             
             # Parse response (streaming or non-streaming)
             raw_output = {}
+            completion_text = ""
+            
             if "completion" in bedrock_response:
-                # Streaming response
+                # Streaming response - collect all chunks
+                chunk_count = 0
                 for event in bedrock_response["completion"]:
                     if "chunk" in event:
                         chunk = event["chunk"]
                         if "bytes" in chunk:
-                            raw_output = json.loads(chunk["bytes"].decode())
+                            chunk_text = chunk["bytes"].decode()
+                            completion_text += chunk_text
+                            chunk_count += 1
+                
+                print(f"[DEBUG] Agent {agent_id} received {chunk_count} chunks, total length: {len(completion_text)}")
+                print(f"[DEBUG] Completion text (first 200 chars): {completion_text[:200]}")
+                
+                # Parse accumulated text
+                if completion_text:
+                    try:
+                        raw_output = json.loads(completion_text)
+                        print(f"[DEBUG] Successfully parsed JSON output for {agent_id}")
+                    except json.JSONDecodeError as e:
+                        # If not JSON, agent returned plain text - this means no final response
+                        print(f"[ERROR] Agent {agent_id} returned non-JSON response: {e}")
+                        print(f"[DEBUG] Full completion text: {completion_text}")
+                        raise ValueError(
+                            f"Agent {agent_id} returned non-JSON response. "
+                            f"This usually means the agent has no action groups and is not configured "
+                            f"to produce final output. Response: {completion_text[:200]}"
+                        )
+                else:
+                    print(f"[ERROR] Agent {agent_id} returned empty completion")
+                    raise ValueError(f"Agent {agent_id} returned empty response")
             else:
                 # Non-streaming response
-                raw_output = json.loads(bedrock_response["output"]["text"])
+                if "output" in bedrock_response and "text" in bedrock_response["output"]:
+                    raw_output = json.loads(bedrock_response["output"]["text"])
+                    print(f"[DEBUG] Successfully parsed non-streaming output for {agent_id}")
+                else:
+                    # Empty response - agent produced no output
+                    print(f"[ERROR] Agent {agent_id} returned no output field")
+                    raise ValueError(
+                        f"Agent {agent_id} returned empty response. "
+                        f"This usually means the agent has no action groups and is not configured "
+                        f"to produce final output. Response keys: {list(bedrock_response.keys())}"
+                    )
             
             # ================================================================
             # STEP 4: VALIDATE OUTPUT

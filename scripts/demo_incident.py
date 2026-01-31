@@ -30,6 +30,12 @@ CHECKPOINT_TABLE_NAME = "opx-langgraph-checkpoints-dev"
 INCIDENTS_TABLE_NAME = "opx-incidents"
 SIGNALS_TABLE_NAME = "opx-signals"
 
+# Note: Table schemas differ:
+# - opx-incidents: pk (INCIDENT#{id}), sk (v1)
+# - opx-incident-events: incidentId, eventSeq
+# - opx-signals: signalId (pk)
+# - opx-langgraph-checkpoints: session_id (pk), checkpoint_id (sk)
+
 def create_sample_signals(service: str, severity: str) -> list[str]:
     """Create sample signals in DynamoDB"""
     print(f"\n📊 Creating sample signals for {service} ({severity})...")
@@ -199,6 +205,13 @@ def print_inspection_guide(incident_id: str, service: str):
     print(f"     --table-name {INCIDENTS_TABLE_NAME} \\")
     key_json = json.dumps({"pk": {"S": f"INCIDENT#{incident_id}"}, "sk": {"S": "v1"}})
     print(f"     --key '{key_json}'")
+    
+    print(f"\n1️⃣b View Incident Events (Event Store):")
+    print(f"   aws dynamodb query \\")
+    print(f"     --table-name opx-incident-events \\")
+    print(f"     --key-condition-expression \"incidentId = :iid\" \\")
+    events_json = json.dumps({":iid": {"S": incident_id}})
+    print(f"     --expression-attribute-values '{events_json}'")
     
     print(f"\n2️⃣  View Signals:")
     print(f"   aws dynamodb query \\")

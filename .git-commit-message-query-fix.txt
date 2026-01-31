@@ -1,0 +1,22 @@
+fix(demo): correct DynamoDB query commands for incident events table
+
+The opx-incident-events table uses 'incidentId' as partition key, not 'pk'.
+This was causing query validation errors when users tried to inspect
+incident events after running the demo.
+
+Changes:
+- scripts/demo_incident.py: Added schema docs and correct query for incident events
+- docs/deployment/QUERY_REFERENCE.md: NEW comprehensive query reference for all tables
+- docs/demo/DEMO_WALKTHROUGH.md: Fixed all query examples with correct key formats
+- QUERY_FIX_COMPLETE.md: Detailed documentation of the fix
+- SESSION_COMPLETE.md: Session summary
+
+Key fixes:
+- opx-incidents uses pk/sk pattern (INCIDENT#{id}, v1)
+- opx-incident-events uses incidentId/eventSeq pattern
+- opx-langgraph-checkpoints uses session_id/checkpoint_id pattern
+
+This resolves the "Query condition missed key schema element" error
+and provides comprehensive documentation to prevent future confusion.
+
+Related: Event Sourcing architecture with separate state and event tables

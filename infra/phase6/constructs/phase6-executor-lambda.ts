@@ -6,6 +6,12 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface Phase6ExecutorLambdaProps {
   readonly checkpointTable: dynamodb.ITable;
@@ -48,6 +54,19 @@ export class Phase6ExecutorLambda extends Construct {
           `arn:aws:bedrock:*::foundation-model/anthropic.claude-3-sonnet-*`,
           `arn:aws:bedrock:*::foundation-model/anthropic.claude-*`,
         ],
+      })
+    );
+
+    // Grant Bedrock Agent Runtime permissions (InvokeAgent for agent invocation)
+    executionRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'bedrock-agent-runtime:InvokeAgent',
+          'bedrock-agent-runtime:Retrieve',
+          'bedrock-agent-runtime:RetrieveAndGenerate',
+        ],
+        resources: ['*'], // Agents are identified at runtime
       })
     );
 
@@ -111,29 +130,7 @@ export class Phase6ExecutorLambda extends Construct {
     this.function = new lambda.Function(this, 'Function', {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'lambda_handler.handler',
-      code: lambda.Code.fromAsset('infra/phase6/lambda', {
-        bundling: {
-          image: lambda.Runtime.PYTHON_3_12.bundlingImage,
-          command: [
-            'bash', '-c',
-            [
-              // Install production dependencies only
-              'pip install -r requirements-prod.txt -t /asset-output --no-cache-dir',
-              // Copy Python source files and directories
-              'cp *.py /asset-output/ 2>/dev/null || true',
-              'cp -r action_groups /asset-output/ 2>/dev/null || true',
-              // Remove unnecessary files to reduce size
-              'cd /asset-output',
-              'find . -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true',
-              'find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true',
-              'find . -type f -name "*.pyc" -delete 2>/dev/null || true',
-              'find . -type f -name "*.pyo" -delete 2>/dev/null || true',
-              'find . -type f -name "test_*.py" -delete 2>/dev/null || true',
-              'rm -rf boto3* botocore* 2>/dev/null || true',  // Already in Lambda runtime
-            ].join(' && ')
-          ],
-        },
-      }),
+      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda')),
       role: executionRole,
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,

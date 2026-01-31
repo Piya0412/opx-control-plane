@@ -1,0 +1,78 @@
+{
+    "Items": [
+        {
+            "metadata": {
+                "M": {
+                    "quality_metrics": {
+                        "M": {
+                            "data_completeness": {
+                                "N": "0"
+                            },
+                            "reasoning_coherence": {
+                                "N": "1"
+                            },
+                            "citation_quality": {
+                                "N": "0"
+                            }
+                        }
+                    },
+                    "agreement_level": {
+                        "N": "1"
+                    }
+                }
+            },
+            "citations": {
+                "L": []
+            },
+            "executionId": {
+                "S": "incident-api-gateway-1769838494"
+            },
+            "timestamp": {
+                "S": "2026-01-31T05:48:19.332308Z"
+            },
+            "status": {
+                "S": "GENERATED"
+            },
+            "ttl": {
+                "N": "1777614499"
+            },
+            "agentName": {
+                "S": "consensus"
+            },
+            "recommendation": {
+                "M": {
+                    "conflicts_detected": {
+                        "L": []
+                    },
+                    "unified": {
+                        "S": "Insufficient data for recommendation. All agents failed."
+                    },
+                    "minority_opinions": {
+                        "L": []
+                    }
+                }
+            },
+            "approved": {
+                "BOOL": false
+            },
+            "incidentId": {
+                "S": "incident-api-gateway-1769838494"
+            },
+            "confidence": {
+                "N": "0"
+            },
+            "agentType": {
+                "S": "consensus"
+            },
+            "recommendationId": {
+                "S": "rec-incident-api-gateway-1769838494-consensus-2026-01-31T05:48:19.332308Z"
+            },
+            "reasoning": {
+                "S": "Agreement level: 1.0"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 4,
+    "ConsumedCapacity": null
+}

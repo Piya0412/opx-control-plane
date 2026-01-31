@@ -4,6 +4,8 @@
 **Purpose:** Demonstrate end-to-end incident management with AI-powered investigation  
 **Audience:** Technical interviews, architecture reviews, stakeholder demos
 
+> **Note:** For detailed DynamoDB query syntax and common mistakes, see [`docs/deployment/QUERY_REFERENCE.md`](../deployment/QUERY_REFERENCE.md)
+
 ---
 
 ## Quick Start
@@ -129,9 +131,10 @@ Checkpoint 7: After Consensus
 ### 1. View Incident
 
 ```bash
+# Get incident state (materialized view)
 aws dynamodb get-item \
   --table-name opx-incidents \
-  --key '{"incidentId":{"S":"incident-api-gateway-1738368000"}}'
+  --key '{"pk":{"S":"INCIDENT#incident-api-gateway-1738368000"},"sk":{"S":"v1"}}'
 ```
 
 **What to look for:**
@@ -139,6 +142,22 @@ aws dynamodb get-item \
 - Severity (SEV1/SEV2)
 - Signal IDs (3 signals)
 - Timestamps
+
+### 1b. View Incident Events (Event Store)
+
+```bash
+# Get complete incident history (authoritative)
+aws dynamodb query \
+  --table-name opx-incident-events \
+  --key-condition-expression "incidentId = :iid" \
+  --expression-attribute-values '{":iid":{"S":"incident-api-gateway-1738368000"}}'
+```
+
+**What to look for:**
+- Event sequence (eventSeq)
+- Event types (IncidentCreated, StateTransitioned, etc.)
+- Complete audit trail
+- Immutable history
 
 ### 2. View Signals
 
@@ -158,16 +177,25 @@ aws dynamodb query \
 ### 3. View LangGraph Checkpoints
 
 ```bash
+# Query checkpoints by session ID
 aws dynamodb query \
   --table-name opx-langgraph-checkpoints-dev \
-  --key-condition-expression "threadId = :tid" \
-  --expression-attribute-values '{":tid":{"S":"incident-api-gateway-1738368000"}}'
+  --key-condition-expression "session_id = :sid" \
+  --expression-attribute-values '{":sid":{"S":"incident-api-gateway-1738368000-1738368005.123"}}'
+
+# Or just count checkpoints
+aws dynamodb query \
+  --table-name opx-langgraph-checkpoints-dev \
+  --key-condition-expression "session_id = :sid" \
+  --expression-attribute-values '{":sid":{"S":"incident-api-gateway-1738368000-1738368005.123"}}' \
+  --query 'Count'
 ```
 
 **What to look for:**
-- Multiple checkpoints (6-7)
-- Checkpoint namespace (agent names)
-- State progression
+- Multiple checkpoints (10-11 per execution)
+- Checkpoint IDs (UUIDs)
+- State progression through graph
+- Session ID format: `{incident_id}-{execution_timestamp}`
 
 ### 4. View Lambda Logs
 
@@ -377,10 +405,17 @@ aws dynamodb scan \
   --table-name opx-incidents \
   --filter-expression "attribute_exists(metadata.demo)"
 
-# Delete specific incident
+# Delete specific incident (use correct pk/sk format)
 aws dynamodb delete-item \
   --table-name opx-incidents \
-  --key '{"incidentId":{"S":"incident-api-gateway-1738368000"}}'
+  --key '{"pk":{"S":"INCIDENT#incident-api-gateway-1738368000"},"sk":{"S":"v1"}}'
+
+# Delete incident events (requires querying first, then deleting each event)
+aws dynamodb query \
+  --table-name opx-incident-events \
+  --key-condition-expression "incidentId = :iid" \
+  --expression-attribute-values '{":iid":{"S":"incident-api-gateway-1738368000"}}' \
+  --query 'Items[].{incidentId:incidentId,eventSeq:eventSeq}'
 ```
 
 **Note:** Checkpoints have no TTL and must be manually deleted if needed.

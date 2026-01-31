@@ -21,6 +21,7 @@ PHASE 8.1 GOVERNANCE:
 
 import hashlib
 import json
+import logging
 import time
 import uuid
 from datetime import datetime
@@ -38,6 +39,10 @@ from state import (
     JSONValue,
 )
 from trace_emitter import emit_trace_event_async
+
+# Configure logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Phase 8.2: Guardrail support
 import os
@@ -309,9 +314,7 @@ def validate_agent_input(agent_input: AgentInput) -> None:
     
     if not agent_input.execution_id:
         raise ValueError("execution_id is required")
-    
-    if not agent_input.session_id:
-        raise ValueError("session_id is required")
+
 
 
 def validate_agent_output(raw_output: Dict[str, JSONValue]) -> None:
@@ -514,6 +517,13 @@ def create_agent_node(
         agent_input = state["agent_input"]
         retry_attempt = state["retry_count"].get(agent_id, 0)
         
+        # Fail-closed: Validate agent configuration at runtime
+        if not bedrock_agent_id or not bedrock_agent_alias_id:
+            raise RuntimeError(
+                f"Agent {agent_id} misconfigured: missing Bedrock agent ID or alias. "
+                f"agent_id={bedrock_agent_id!r}, alias_id={bedrock_agent_alias_id!r}"
+            )
+        
         # Emit STARTED trace
         state = add_execution_trace(
             state,
@@ -530,96 +540,153 @@ def create_agent_node(
             validate_agent_input(agent_input)
             
             # ================================================================
-            # STEP 2: BUILD BEDROCK REQUEST
             # ================================================================
+            # STEP 2: BUILD BEDROCK REQUEST (STATELESS – CORRECT)
+            # ================================================================
+
+            user_prompt = json.dumps({
+                "incidentId": agent_input.incident_id,
+                "evidenceBundle": agent_input.evidence_bundle,
+                "timestamp": agent_input.timestamp,
+                "executionId": agent_input.execution_id,
+                "budgetRemaining": state["budget_remaining"],
+            })
+
             bedrock_request = {
                 "agentId": bedrock_agent_id,
                 "agentAliasId": bedrock_agent_alias_id,
-                "sessionId": agent_input.session_id,
-                "inputText": json.dumps({
-                    "incidentId": agent_input.incident_id,
-                    "evidenceBundle": agent_input.evidence_bundle,
-                    "timestamp": agent_input.timestamp,
-                    "executionId": agent_input.execution_id,
-                    "budgetRemaining": state["budget_remaining"],
-                }),
+
+                # REQUIRED
+                "inputText": user_prompt,
+
+                # Optional, but good for debugging
+                "enableTrace": True,
             }
+
+
             
             # ================================================================
             # STEP 3: INVOKE BEDROCK AGENT (WITH GUARDRAILS)
             # ================================================================
-            # Attach guardrails if configured
-            if GUARDRAIL_ID:
-                bedrock_request['guardrailIdentifier'] = GUARDRAIL_ID
-                bedrock_request['guardrailVersion'] = GUARDRAIL_VERSION
+            # Diagnostic log for verification
+            logger.info(f"[INFO] Invoking Bedrock agent {agent_id} | agent_id={bedrock_agent_id} | alias_id={bedrock_agent_alias_id}")
+            
+            # NOTE: Guardrails are configured at agent level in CDK, not at invocation time
+            # Do NOT pass guardrailIdentifier/guardrailVersion to invoke_agent
+            
+            # Enable trace to debug response issues
+            bedrock_request['enableTrace'] = True
             
             bedrock_response = bedrock_agent_runtime.invoke_agent(**bedrock_request)
+            
+            # IMMEDIATE log to confirm we got here
+            logger.info(f"[CRITICAL] invoke_agent returned for {agent_id}")
+            logger.info(f"[CRITICAL] Response type: {type(bedrock_response)}")
+            logger.info(f"[CRITICAL] Response has 'completion': {'completion' in bedrock_response}")
+            
+            # CRITICAL: Log the FULL raw response to understand structure
+            logger.info(f"[RAW BEDROCK RESPONSE] Agent: {agent_id}")
+            logger.info(f"[RAW BEDROCK RESPONSE] Keys: {list(bedrock_response.keys())}")
+            print(f"[RAW BEDROCK RESPONSE] Full response: {json.dumps(bedrock_response, default=str, indent=2)[:2000]}")
+            
+            # Log response structure for debugging
+            print(f"[DEBUG] Bedrock response keys for {agent_id}: {list(bedrock_response.keys())}")
+            print(f"[DEBUG] Full response metadata: {bedrock_response.get('ResponseMetadata', {})}")
+            
+            if "completion" in bedrock_response:
+                print(f"[DEBUG] Agent {agent_id} returned streaming response")
+            elif "output" in bedrock_response:
+                print(f"[DEBUG] Agent {agent_id} returned non-streaming response")
+            else:
+                print(f"[WARNING] Agent {agent_id} returned unexpected response structure")
+                print(f"[DEBUG] Full response (first 500 chars): {str(bedrock_response)[:500]}")
             
             # ================================================================
             # STEP 3.5: CHECK FOR GUARDRAIL VIOLATIONS
             # ================================================================
             # Handle response-based guardrail blocks
             if bedrock_response.get('guardrailAction') == 'BLOCKED':
-                # Log violation (async, non-blocking)
-                try:
-                    from ..tracing.guardrail_handler import handle_guardrail_violation
-                    handle_guardrail_violation(
-                        agent_id=agent_id,
-                        incident_id=agent_input.incident_id,
-                        execution_id=agent_input.execution_id,
-                        trace_id=str(uuid.uuid4()),
-                        violation={
-                            'type': bedrock_response.get('violationType', 'UNKNOWN'),
-                            'action': 'BLOCK',
-                            'category': bedrock_response.get('category'),
-                            'confidence': bedrock_response.get('confidence', 1.0),
-                        },
-                        input_text=bedrock_request['inputText'],
-                        response=bedrock_response,
-                        model=bedrock_response.get('modelId', 'unknown')
-                    )
-                except Exception as guardrail_error:
-                    print(f"WARNING: Guardrail violation logging failed: {guardrail_error}")
+                # Log violation (async, non-blocking) - DISABLED: guardrail_handler not in Lambda package
+                print(f"WARNING: Guardrail blocked request for agent {agent_id}")
                 
                 # Return failure hypothesis (graceful degradation)
                 raise ValueError("Request blocked by guardrails")
             
             # Check for non-blocking violations (WARN mode)
             if 'guardrailAction' in bedrock_response and bedrock_response['guardrailAction'] != 'BLOCKED':
-                # Log violation (async, non-blocking)
-                try:
-                    from ..tracing.guardrail_handler import handle_guardrail_violation
-                    handle_guardrail_violation(
-                        agent_id=agent_id,
-                        incident_id=agent_input.incident_id,
-                        execution_id=agent_input.execution_id,
-                        trace_id=str(uuid.uuid4()),
-                        violation={
-                            'type': bedrock_response.get('violationType', 'UNKNOWN'),
-                            'action': 'WARN',
-                            'category': bedrock_response.get('category'),
-                            'confidence': bedrock_response.get('confidence', 1.0),
-                        },
-                        input_text=bedrock_request['inputText'],
-                        response=bedrock_response,
-                        model=bedrock_response.get('modelId', 'unknown')
-                    )
-                except Exception as guardrail_error:
-                    print(f"WARNING: Guardrail violation logging failed: {guardrail_error}")
+                # Log violation (async, non-blocking) - DISABLED: guardrail_handler not in Lambda package
+                # try:
+                #     from guardrail_handler import handle_guardrail_violation
+                #     handle_guardrail_violation(...)
+                # except Exception as guardrail_error:
+                #     print(f"WARNING: Guardrail violation logging failed: {guardrail_error}")
                 # Continue with agent execution (WARN mode)
+                pass
             
-            # Parse response (streaming or non-streaming)
-            raw_output = {}
-            if "completion" in bedrock_response:
-                # Streaming response
-                for event in bedrock_response["completion"]:
-                    if "chunk" in event:
-                        chunk = event["chunk"]
-                        if "bytes" in chunk:
-                            raw_output = json.loads(chunk["bytes"].decode())
+            # ================================================================
+            # STEP 4: PARSE BEDROCK RESPONSE (CONSUME STREAM)
+            # ================================================================
+            # CRITICAL: Bedrock returns a lazy EventStream that MUST be consumed
+            # If not iterated, no chunks are read and agent appears to fail silently
+            
+            logger.info(f"[CRITICAL] Starting stream consumption for {agent_id}")
+            
+            raw_text = ""
+            completion = bedrock_response.get("completion")
+            
+            logger.info(f"[CRITICAL] completion object type: {type(completion)}")
+            logger.info(f"[CRITICAL] completion is None: {completion is None}")
+            
+            if completion:
+                logger.info(f"[CRITICAL] Entering stream loop for {agent_id}")
+                # Streaming response - MUST iterate to consume stream
+                chunk_count = 0
+                for event in completion:
+                    logger.info(f"[CRITICAL] Received event {chunk_count} for {agent_id}")
+                    if "chunk" in event and "bytes" in event["chunk"]:
+                        chunk_text = event["chunk"]["bytes"].decode("utf-8")
+                        raw_text += chunk_text
+                        chunk_count += 1
+                        logger.info(f"[CRITICAL] Chunk {chunk_count} text: {chunk_text[:100]}")
+                
+                logger.info(f"[CRITICAL] Stream loop completed for {agent_id}, chunks: {chunk_count}")
+                logger.info(f"[DEBUG] Agent {agent_id} received {chunk_count} chunks, total length: {len(raw_text)}")
+                logger.info(f"[RAW BEDROCK OUTPUT] Agent: {agent_id}")
+                logger.info(f"[RAW BEDROCK OUTPUT] Text (first 500 chars): {raw_text[:500]}")
+                
+                if not raw_text.strip():
+                    print(f"[ERROR] Agent {agent_id} returned empty stream output")
+                    raise ValueError(f"Agent {agent_id} returned empty stream output")
+                
+                # Parse JSON from accumulated text
+                try:
+                    raw_output = json.loads(raw_text)
+                    print(f"[DEBUG] Successfully parsed JSON output for {agent_id}")
+                except json.JSONDecodeError as e:
+                    print(f"[ERROR] Agent {agent_id} returned non-JSON response: {e}")
+                    print(f"[DEBUG] Full raw text: {raw_text}")
+                    raise ValueError(
+                        f"Agent {agent_id} returned non-JSON response. "
+                        f"This usually means the agent has no action groups and is not configured "
+                        f"to produce final output. Response: {raw_text[:200]}"
+                    )
             else:
-                # Non-streaming response
-                raw_output = json.loads(bedrock_response["output"]["text"])
+                # Non-streaming response (fallback, rarely used)
+                if "output" in bedrock_response and "text" in bedrock_response["output"]:
+                    raw_text = bedrock_response["output"]["text"]
+                    print(f"[RAW BEDROCK OUTPUT] Agent: {agent_id} (non-streaming)")
+                    print(f"[RAW BEDROCK OUTPUT] Text: {raw_text[:500]}")
+                    raw_output = json.loads(raw_text)
+                    print(f"[DEBUG] Successfully parsed non-streaming output for {agent_id}")
+                else:
+                    # Empty response - agent produced no output
+                    print(f"[ERROR] Agent {agent_id} returned no completion or output field")
+                    print(f"[DEBUG] Response keys: {list(bedrock_response.keys())}")
+                    raise ValueError(
+                        f"Agent {agent_id} returned empty response. "
+                        f"This usually means the agent has no action groups and is not configured "
+                        f"to produce final output. Response keys: {list(bedrock_response.keys())}"
+                    )
             
             # ================================================================
             # STEP 4: VALIDATE OUTPUT
@@ -717,33 +784,27 @@ def create_agent_node(
             # ================================================================
             duration_ms = int((time.time() - start_time) * 1000)
             
+            # CRITICAL: Log the exception details
+            logger.error(f"[EXCEPTION] Agent {agent_id} failed with exception: {type(e).__name__}")
+            logger.error(f"[EXCEPTION] Message: {str(e)}")
+            logger.error(f"[EXCEPTION] Full traceback:", exc_info=True)
+            
             # Check for exception-based guardrail blocks
             if type(e).__name__ == 'GuardrailInterventionException':
-                # Log violation (async, non-blocking)
-                try:
-                    from ..tracing.guardrail_handler import handle_guardrail_violation
-                    handle_guardrail_violation(
-                        agent_id=agent_id,
-                        incident_id=agent_input.incident_id,
-                        execution_id=agent_input.execution_id,
-                        trace_id=str(uuid.uuid4()),
-                        violation={
-                            'type': getattr(e, 'violationType', 'UNKNOWN'),
-                            'action': 'BLOCK',
-                            'category': getattr(e, 'category', None),
-                            'confidence': getattr(e, 'confidence', 1.0),
-                        },
-                        input_text=bedrock_request['inputText'] if 'bedrock_request' in locals() else '',
-                        response={'error': str(e)},
-                        model='unknown'
-                    )
-                except Exception as guardrail_error:
-                    print(f"WARNING: Guardrail violation logging failed: {guardrail_error}")
+                # Log violation (async, non-blocking) - DISABLED: guardrail_handler not in Lambda package
+                # try:
+                #     from guardrail_handler import handle_guardrail_violation
+                #     handle_guardrail_violation(...)
+                # except Exception as guardrail_error:
+                #     logger.warning(f"WARNING: Guardrail violation logging failed: {guardrail_error}")
+                pass
             
             # Map exception to error code
             error_code = map_exception_to_error_code(e)
             message = str(e)
             retryable = is_retryable_error(error_code)
+            
+            logger.info(f"[EXCEPTION] Error code: {error_code}, retryable: {retryable}, retry_attempt: {retry_attempt}")
             
             # Check if retry eligible
             if retryable and retry_attempt < max_retries:

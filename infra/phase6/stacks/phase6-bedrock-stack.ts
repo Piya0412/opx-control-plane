@@ -27,6 +27,7 @@ import { ValidationAlarms } from '../../constructs/validation-alarms.js';
 import { TokenAnalyticsDashboard } from '../../constructs/token-analytics-dashboard.js';
 import { TokenAnalyticsAlarms } from '../../constructs/token-analytics-alarms.js';
 import { BudgetAlertLambda } from '../../constructs/budget-alert-lambda.js';
+import { AgentRecommendationsTable } from '../../constructs/agent-recommendations-table.js';
 
 export class Phase6BedrockStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -76,6 +77,17 @@ export class Phase6BedrockStack extends cdk.Stack {
 
     // Guardrail Alarms
     new GuardrailAlarms(this, 'GuardrailAlarms');
+
+    // Update executor Lambda with Bedrock Agent IDs and Aliases
+    // These are required for LangGraph to invoke the agents
+    agents.agents.forEach((agent, agentId) => {
+      const alias = agents.aliases.get(agentId);
+      if (alias) {
+        const envPrefix = agentId.toUpperCase().replace(/-/g, '_');
+        executorLambda.function.addEnvironment(`${envPrefix}_AGENT_ID`, agent.attrAgentId);
+        executorLambda.function.addEnvironment(`${envPrefix}_ALIAS_ID`, alias.attrAgentAliasId);
+      }
+    });
 
     // Update executor Lambda with guardrail configuration
     executorLambda.function.addEnvironment('GUARDRAIL_ID', guardrails.guardrailId);
@@ -139,6 +151,33 @@ export class Phase6BedrockStack extends cdk.Stack {
       conditions: {
         StringEquals: {
           'cloudwatch:namespace': 'OPX/Analytics',
+        },
+      },
+    }));
+
+    // ========================================================================
+    // PHASE 8.7: ADVISORY RECOMMENDATION PERSISTENCE
+    // ========================================================================
+
+    // Agent Recommendations Table
+    const recommendationsTable = new AgentRecommendationsTable(this, 'AgentRecommendationsTable', {
+      environment: 'dev',
+      ttlDays: 90,
+    });
+
+    // Update executor Lambda with recommendations configuration
+    executorLambda.function.addEnvironment('RECOMMENDATIONS_TABLE', recommendationsTable.table.tableName);
+    
+    // Grant recommendations table write permissions (write-only)
+    recommendationsTable.table.grantWriteData(executorLambda.function);
+
+    // Grant CloudWatch metrics permissions for recommendations
+    executorLambda.function.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: ['cloudwatch:PutMetricData'],
+      resources: ['*'],
+      conditions: {
+        StringEquals: {
+          'cloudwatch:namespace': 'OPX/Recommendations',
         },
       },
     }));
@@ -214,6 +253,13 @@ export class Phase6BedrockStack extends cdk.Stack {
       value: validationTable.table.tableName,
       description: 'Validation Errors DynamoDB Table (Phase 8.3)',
       exportName: 'OpxPhase6-ValidationErrorsTableName',
+    });
+
+    // Phase 8.7: Recommendations Outputs
+    new cdk.CfnOutput(this, 'RecommendationsTableName', {
+      value: recommendationsTable.table.tableName,
+      description: 'Agent Recommendations DynamoDB Table (Phase 8.7)',
+      exportName: 'OpxPhase6-RecommendationsTableName',
     });
   }
 }

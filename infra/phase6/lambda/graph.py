@@ -30,6 +30,7 @@ from agent_node import create_agent_node
 from consensus_node import consensus_node
 from cost_guardian_node import cost_guardian_node
 from checkpointing import create_dynamodb_checkpointer
+from recommendation_persistence import persist_recommendations
 
 
 # ============================================================================
@@ -326,6 +327,66 @@ def terminal_node(state: GraphState) -> Dict[str, JSONValue]:
         ],
         "timestamp": datetime.utcnow().isoformat(),
     }
+    
+    # ========================================================================
+    # PHASE 8.7: PERSIST RECOMMENDATIONS (FAIL-OPEN)
+    # ========================================================================
+    # Persist agent recommendations for CLI inspection and audit.
+    # This is FAIL-OPEN: Errors are logged but do not block execution.
+    try:
+        # Extract agent outputs for persistence
+        agent_outputs_for_persistence = {}
+        
+        for agent_id, agent_output in hypotheses.items():
+            if agent_output.status == "SUCCESS":  # Only persist successful outputs
+                agent_outputs_for_persistence[agent_id] = {
+                    'recommendation': {
+                        'findings': agent_output.findings,
+                        'disclaimer': agent_output.disclaimer,
+                    },
+                    'confidence': agent_output.confidence,
+                    'reasoning': agent_output.reasoning,
+                    'citations': agent_output.citations or [],
+                    'metadata': {
+                        'cost': agent_output.cost,
+                        'status': agent_output.status,
+                        'agent_version': agent_output.agent_version,
+                        'duration': agent_output.duration,
+                        'timestamp': agent_output.timestamp,
+                    }
+                }
+        
+        # Extract consensus for persistence
+        consensus_for_persistence = {
+            'recommendation': {
+                'unified': consensus.unified_recommendation,
+                'conflicts_detected': consensus.conflicts_detected,
+                'minority_opinions': consensus.minority_opinions,
+            },
+            'confidence': consensus.aggregated_confidence,
+            'reasoning': f"Agreement level: {consensus.agreement_level}",
+            'citations': [],
+            'metadata': {
+                'agreement_level': consensus.agreement_level,
+                'quality_metrics': consensus.quality_metrics,
+            }
+        }
+        
+        # Get execution ID from state (session_id)
+        execution_id = state.get("config", {}).get("configurable", {}).get("thread_id", agent_input.incident_id)
+        
+        # Persist recommendations (fail-open)
+        persist_recommendations(
+            incident_id=agent_input.incident_id,
+            execution_id=execution_id,
+            agent_outputs=agent_outputs_for_persistence,
+            consensus=consensus_for_persistence
+        )
+    except Exception as e:
+        # Log error but DO NOT raise (fail-open)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Failed to persist recommendations (non-blocking): {e}")
     
     return output
 
