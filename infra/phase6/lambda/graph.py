@@ -467,17 +467,11 @@ def create_graph() -> StateGraph:
     # COMPILE WITH CHECKPOINTING
     # ========================================================================
     
-    # Create checkpointer (DynamoDB for production, MemorySaver for testing)
-    use_dynamodb = os.environ.get('USE_DYNAMODB_CHECKPOINTING', 'true').lower() == 'true'
-    
-    if use_dynamodb:
-        checkpointer = create_dynamodb_checkpointer(
-            table_name=os.environ.get('LANGGRAPH_CHECKPOINT_TABLE'),
-            region_name=os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'),
-        )
-    else:
-        # Fallback to in-memory for testing
-        checkpointer = MemorySaver()
+    # Create DynamoDB checkpointer (unconditional)
+    checkpointer = create_dynamodb_checkpointer(
+        table_name=os.environ.get('LANGGRAPH_CHECKPOINT_TABLE'),
+        region_name=os.environ.get('AWS_DEFAULT_REGION', 'us-east-1'),
+    )
     
     # Compile graph
     compiled_graph = graph.compile(checkpointer=checkpointer)

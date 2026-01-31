@@ -70,7 +70,7 @@ export class Phase6ExecutorLambda extends Construct {
       })
     );
 
-    // Explicit DENY on write operations (safety)
+    // Explicit DENY on write operations (safety) - EXCEPT checkpoint table
     executionRole.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.DENY,
@@ -78,6 +78,18 @@ export class Phase6ExecutorLambda extends Construct {
           'dynamodb:PutItem',
           'dynamodb:UpdateItem',
           'dynamodb:DeleteItem',
+        ],
+        notResources: [
+          props.checkpointTable.tableArn,  // Allow writes to checkpoint table
+        ],
+      })
+    );
+
+    // Explicit DENY on dangerous operations
+    executionRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.DENY,
+        actions: [
           'ec2:*',
           'lambda:UpdateFunctionCode',
           'lambda:UpdateFunctionConfiguration',

@@ -6,12 +6,19 @@ Implements LangGraph checkpointing using DynamoDB for replay determinism.
 
 import json
 import os
-from typing import Optional, Dict, Any
-from datetime import datetime
+import pickle
+from typing import Optional, Dict, Any, Iterator, Sequence
+from datetime import datetime, timezone
 
 import boto3
 from botocore.exceptions import ClientError
-from langgraph.checkpoint.base import BaseCheckpointSaver, Checkpoint
+from langgraph.checkpoint.base import (
+    BaseCheckpointSaver,
+    Checkpoint,
+    CheckpointTuple,
+    CheckpointMetadata,
+)
+from langchain_core.runnables import RunnableConfig
 
 
 class DynamoDBCheckpointer(BaseCheckpointSaver):
@@ -19,7 +26,7 @@ class DynamoDBCheckpointer(BaseCheckpointSaver):
     DynamoDB-based checkpointer for LangGraph state persistence.
     
     Stores checkpoints in DynamoDB table with:
-    - Partition key: thread_id
+    - Partition key: session_id
     - Sort key: checkpoint_id
     
     This enables replay determinism by persisting state at each node.
@@ -38,129 +45,247 @@ class DynamoDBCheckpointer(BaseCheckpointSaver):
             region_name: AWS region
         """
         self.table_name = table_name or os.environ.get(
-            'LANGGRAPH_STATE_TABLE',
-            'opx-langgraph-state'
+            'LANGGRAPH_CHECKPOINT_TABLE',
+            'opx-langgraph-checkpoints-dev'
         )
         self.region_name = region_name
         
         # Initialize DynamoDB client
         self.dynamodb = boto3.resource('dynamodb', region_name=region_name)
         self.table = self.dynamodb.Table(self.table_name)
+        
+        print(f"[DynamoDBCheckpointer] Initialized with table: {self.table_name}")
     
-    def put(
-        self,
-        config: Dict[str, Any],
-        checkpoint: Checkpoint,
-        metadata: Dict[str, Any],
-    ) -> None:
+    def get_tuple(self, config: RunnableConfig) -> Optional[CheckpointTuple]:
         """
-        Save checkpoint to DynamoDB.
+        Get latest checkpoint tuple from DynamoDB.
         
         Args:
-            config: Configuration dict with thread_id
-            checkpoint: Checkpoint to save
-            metadata: Checkpoint metadata
-        """
-        thread_id = config.get('configurable', {}).get('thread_id')
-        if not thread_id:
-            raise ValueError("thread_id required in config.configurable")
-        
-        checkpoint_id = checkpoint.get('id', datetime.utcnow().isoformat())
-        
-        try:
-            self.table.put_item(
-                Item={
-                    'thread_id': thread_id,
-                    'checkpoint_id': checkpoint_id,
-                    'checkpoint': json.dumps(checkpoint),
-                    'metadata': json.dumps(metadata),
-                    'created_at': datetime.utcnow().isoformat() + 'Z',
-                }
-            )
-        except ClientError as e:
-            print(f"[DynamoDBCheckpointer] Error saving checkpoint: {e}")
-            raise
-    
-    def get(
-        self,
-        config: Dict[str, Any],
-    ) -> Optional[Checkpoint]:
-        """
-        Get latest checkpoint from DynamoDB.
-        
-        Args:
-            config: Configuration dict with thread_id
+            config: Runnable configuration with thread_id
             
         Returns:
-            Latest checkpoint or None
+            CheckpointTuple or None
         """
-        thread_id = config.get('configurable', {}).get('thread_id')
-        if not thread_id:
+        # Extract session_id from config
+        configurable = config.get('configurable', {})
+        session_id = configurable.get('thread_id') or configurable.get('session_id')
+        
+        if not session_id:
+            print("[DynamoDBCheckpointer] No session_id in config, returning None")
             return None
         
         try:
-            # Query for latest checkpoint
+            # Query for latest checkpoint (descending order by checkpoint_id)
             response = self.table.query(
-                KeyConditionExpression='thread_id = :tid',
-                ExpressionAttributeValues={':tid': thread_id},
+                KeyConditionExpression='session_id = :sid',
+                ExpressionAttributeValues={':sid': session_id},
                 ScanIndexForward=False,  # Descending order
                 Limit=1,
             )
             
             items = response.get('Items', [])
             if not items:
+                print(f"[DynamoDBCheckpointer] No checkpoints found for session: {session_id}")
                 return None
             
-            checkpoint_data = items[0].get('checkpoint')
-            if not checkpoint_data:
+            item = items[0]
+            
+            # Deserialize checkpoint
+            checkpoint_blob = item.get('state_blob')
+            if not checkpoint_blob:
+                print(f"[DynamoDBCheckpointer] No state_blob in checkpoint")
                 return None
             
-            return json.loads(checkpoint_data)
+            # Deserialize using pickle (LangGraph uses pickle for checkpoints)
+            checkpoint = pickle.loads(checkpoint_blob.value)
             
-        except ClientError as e:
+            # Deserialize metadata
+            metadata_json = item.get('metadata', '{}')
+            if isinstance(metadata_json, str):
+                metadata = json.loads(metadata_json)
+            else:
+                metadata = metadata_json
+            
+            # Create CheckpointTuple
+            checkpoint_tuple = CheckpointTuple(
+                config=config,
+                checkpoint=checkpoint,
+                metadata=metadata,
+                parent_config=None,  # We don't track parent checkpoints in this implementation
+            )
+            
+            print(f"[DynamoDBCheckpointer] Retrieved checkpoint for session: {session_id}")
+            return checkpoint_tuple
+            
+        except Exception as e:
             print(f"[DynamoDBCheckpointer] Error getting checkpoint: {e}")
+            import traceback
+            traceback.print_exc()
             return None
+    
+    def put(
+        self,
+        config: RunnableConfig,
+        checkpoint: Checkpoint,
+        metadata: CheckpointMetadata,
+        new_versions: Any = None,  # LangGraph may pass this
+    ) -> RunnableConfig:
+        """
+        Save checkpoint to DynamoDB.
+        
+        Args:
+            config: Runnable configuration
+            checkpoint: Checkpoint to save
+            metadata: Checkpoint metadata
+            new_versions: Optional version information (ignored)
+            
+        Returns:
+            Updated configuration
+        """
+        # Extract session_id from config
+        configurable = config.get('configurable', {})
+        session_id = configurable.get('thread_id') or configurable.get('session_id')
+        
+        if not session_id:
+            raise ValueError("session_id or thread_id required in config.configurable")
+        
+        # Generate checkpoint_id from checkpoint
+        checkpoint_id = checkpoint.get('id', datetime.now(timezone.utc).isoformat())
+        
+        try:
+            # Serialize checkpoint using pickle (LangGraph standard)
+            checkpoint_blob = pickle.dumps(checkpoint)
+            
+            # Serialize metadata - handle non-JSON-serializable objects
+            if metadata:
+                try:
+                    metadata_json = json.dumps(metadata)
+                except (TypeError, ValueError):
+                    # If metadata contains non-serializable objects, pickle it
+                    metadata_json = json.dumps({'_pickled': True})
+                    print(f"[DynamoDBCheckpointer] Metadata not JSON-serializable, using simplified version")
+            else:
+                metadata_json = '{}'
+            
+            # Store in DynamoDB
+            self.table.put_item(
+                Item={
+                    'session_id': session_id,
+                    'checkpoint_id': str(checkpoint_id),
+                    'state_blob': checkpoint_blob,
+                    'metadata': metadata_json,
+                    'node_name': str(metadata.get('source', 'unknown')) if metadata else 'unknown',
+                    'created_at': datetime.now(timezone.utc).isoformat(),
+                }
+            )
+            
+            print(f"[DynamoDBCheckpointer] Saved checkpoint {checkpoint_id} for session: {session_id}")
+            return config
+            
+        except Exception as e:
+            print(f"[DynamoDBCheckpointer] Error saving checkpoint: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
     
     def list(
         self,
-        config: Dict[str, Any],
-        limit: int = 10,
-    ) -> list:
+        config: RunnableConfig,
+        *,
+        filter: Optional[Dict[str, Any]] = None,
+        before: Optional[RunnableConfig] = None,
+        limit: Optional[int] = None,
+    ) -> Iterator[CheckpointTuple]:
         """
-        List checkpoints for a thread.
+        List checkpoints for a session.
         
         Args:
-            config: Configuration dict with thread_id
+            config: Runnable configuration
+            filter: Optional filter criteria
+            before: Optional checkpoint to start before
             limit: Maximum number of checkpoints to return
             
-        Returns:
-            List of checkpoints
+        Yields:
+            CheckpointTuple instances
         """
-        thread_id = config.get('configurable', {}).get('thread_id')
-        if not thread_id:
-            return []
+        # Extract session_id from config
+        configurable = config.get('configurable', {})
+        session_id = configurable.get('thread_id') or configurable.get('session_id')
+        
+        if not session_id:
+            print("[DynamoDBCheckpointer] No session_id in config for list()")
+            return
         
         try:
-            response = self.table.query(
-                KeyConditionExpression='thread_id = :tid',
-                ExpressionAttributeValues={':tid': thread_id},
-                ScanIndexForward=False,  # Descending order
-                Limit=limit,
-            )
+            # Query for checkpoints
+            query_params = {
+                'KeyConditionExpression': 'session_id = :sid',
+                'ExpressionAttributeValues': {':sid': session_id},
+                'ScanIndexForward': False,  # Descending order
+            }
             
+            if limit:
+                query_params['Limit'] = limit
+            
+            response = self.table.query(**query_params)
             items = response.get('Items', [])
-            checkpoints = []
+            
+            print(f"[DynamoDBCheckpointer] Found {len(items)} checkpoints for session: {session_id}")
             
             for item in items:
-                checkpoint_data = item.get('checkpoint')
-                if checkpoint_data:
-                    checkpoints.append(json.loads(checkpoint_data))
+                try:
+                    # Deserialize checkpoint
+                    checkpoint_blob = item.get('state_blob')
+                    if not checkpoint_blob:
+                        continue
+                    
+                    checkpoint = pickle.loads(checkpoint_blob.value)
+                    
+                    # Deserialize metadata
+                    metadata_json = item.get('metadata', '{}')
+                    if isinstance(metadata_json, str):
+                        metadata = json.loads(metadata_json)
+                    else:
+                        metadata = metadata_json
+                    
+                    # Yield CheckpointTuple
+                    yield CheckpointTuple(
+                        config=config,
+                        checkpoint=checkpoint,
+                        metadata=metadata,
+                        parent_config=None,
+                    )
+                    
+                except Exception as e:
+                    print(f"[DynamoDBCheckpointer] Error deserializing checkpoint: {e}")
+                    continue
             
-            return checkpoints
-            
-        except ClientError as e:
+        except Exception as e:
             print(f"[DynamoDBCheckpointer] Error listing checkpoints: {e}")
-            return []
+            import traceback
+            traceback.print_exc()
+    
+    def put_writes(
+        self,
+        config: RunnableConfig,
+        writes: Sequence[tuple],
+        task_id: str,
+    ) -> None:
+        """
+        Store intermediate writes (required by LangGraph).
+        
+        This is called to store writes before they're committed to a checkpoint.
+        For simplicity, we'll just log and ignore since we're storing full checkpoints.
+        
+        Args:
+            config: Runnable configuration
+            writes: Sequence of (channel, value) tuples
+            task_id: Task identifier
+        """
+        # For now, we don't store intermediate writes separately
+        # They'll be captured in the full checkpoint via put()
+        print(f"[DynamoDBCheckpointer] put_writes called for task: {task_id} (no-op)")
+        pass
 
 
 def create_dynamodb_checkpointer(
